@@ -47,8 +47,8 @@ class LoginScreen extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color:
                         isDark
-                            ? BColors.white.withOpacity(0.6)
-                            : BColors.black.withOpacity(0.6),
+                            ? BColors.white.withValues(alpha: 0.6)
+                            : BColors.black.withValues(alpha: 0.6),
                   ),
                 ),
 
@@ -166,8 +166,8 @@ class LoginScreen extends StatelessWidget {
                       child: Divider(
                         color:
                             isDark
-                                ? BColors.white.withOpacity(0.2)
-                                : BColors.black.withOpacity(0.2),
+                                ? BColors.white.withValues(alpha: 0.2)
+                                : BColors.black.withValues(alpha: 0.2),
                       ),
                     ),
                     Padding(
@@ -177,8 +177,8 @@ class LoginScreen extends StatelessWidget {
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color:
                               isDark
-                                  ? BColors.white.withOpacity(0.6)
-                                  : BColors.black.withOpacity(0.6),
+                                  ? BColors.white.withValues(alpha: 0.6)
+                                  : BColors.black.withValues(alpha: 0.6),
                         ),
                       ),
                     ),
@@ -186,8 +186,8 @@ class LoginScreen extends StatelessWidget {
                       child: Divider(
                         color:
                             isDark
-                                ? BColors.white.withOpacity(0.2)
-                                : BColors.black.withOpacity(0.2),
+                                ? BColors.white.withValues(alpha: 0.2)
+                                : BColors.black.withValues(alpha: 0.2),
                       ),
                     ),
                   ],
@@ -211,8 +211,8 @@ class LoginScreen extends StatelessWidget {
                           border: Border.all(
                             color:
                                 isDark
-                                    ? BColors.white.withOpacity(0.2)
-                                    : BColors.black.withOpacity(0.2),
+                                    ? BColors.white.withValues(alpha: 0.2)
+                                    : BColors.black.withValues(alpha: 0.2),
                           ),
                         ),
                         child: Center(
@@ -242,8 +242,8 @@ class LoginScreen extends StatelessWidget {
                           border: Border.all(
                             color:
                                 isDark
-                                    ? BColors.white.withOpacity(0.2)
-                                    : BColors.black.withOpacity(0.2),
+                                    ? BColors.white.withValues(alpha: 0.2)
+                                    : BColors.black.withValues(alpha: 0.2),
                           ),
                         ),
                         child: Center(
