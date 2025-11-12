@@ -12,6 +12,7 @@ dependencies:
     sdk: flutter 
   cupertino_icons: ^1.0.8
   get: ^4.7.2
+  gif: ^2.3.0
 
 dev_dependencies:
   flutter_test:
@@ -21,7 +22,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/onboarding
+    - assets/images/onboarding/
     - assets/icons/
     - assets/logos/
 

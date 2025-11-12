@@ -29,9 +29,9 @@ class BAppTheme {
 
   static final ThemeData darkTheme = ThemeData(
     fontFamily: 'Poppins',
-    brightness: Brightness.light,
+    brightness: Brightness.dark,
     primaryColor: const Color.fromRGBO(108, 99, 255, 1),
-    scaffoldBackgroundColor: BColors.white,
+    scaffoldBackgroundColor: BColors.black,
     textTheme: BTextTheme.darkTextTheme,
     elevatedButtonTheme: BElevatedButtonTheme.darkElevatedButtonTheme,
     chipTheme: BChipTheme.darkChipTheme,
