@@ -67,4 +67,6 @@ class BSizes {
 
   // Border
   static const double borderRadius = 14.0;
+
+  static const double spaceBetweenInputFields = 16.0;
 }

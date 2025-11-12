@@ -1,3 +1,4 @@
+import 'package:ecommerce_app/features/authentication/screens/authscreens/login.dart';
 import 'package:ecommerce_app/util/constants/BText.dart';
 import 'package:ecommerce_app/util/constants/Bimages.dart';
 import 'package:flutter/material.dart';
@@ -68,7 +69,7 @@ class OnboardingController extends GetxController
   void nextPage() {
     if (currentIndex.value == images.length - 1) {
       // Navigate to next screen
-      // Get.offAll(() => HomeScreen()); // Example navigation
+      Get.to(LoginScreen());
     } else {
       pageController.nextPage(
         duration: const Duration(milliseconds: 400),
