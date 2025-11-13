@@ -1,6 +1,15 @@
+import 'package:ecommerce_app/common/widgets/Divider_with_text.dart';
+import 'package:ecommerce_app/common/widgets/auth_header.dart';
+import 'package:ecommerce_app/common/widgets/checkbox.dart';
+import 'package:ecommerce_app/common/widgets/email_input.dart';
+import 'package:ecommerce_app/common/widgets/full_width_elevated_button.dart';
+import 'package:ecommerce_app/common/widgets/full_width_outlined_button.dart';
+import 'package:ecommerce_app/common/widgets/logo.dart';
+import 'package:ecommerce_app/common/widgets/password_input.dart';
+import 'package:ecommerce_app/common/widgets/social_login_buttons.dart';
+import 'package:ecommerce_app/common/widgets/text_link_button.dart';
 import 'package:ecommerce_app/features/authentication/controllers/auth/login_controller.dart';
 import 'package:ecommerce_app/util/constants/sized.dart';
-import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -10,7 +19,6 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(LoginController());
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -25,66 +33,34 @@ class LoginScreen extends StatelessWidget {
                 const SizedBox(height: BSizes.spaceBetweenSections),
 
                 // Logo
-                Image.asset(
-                  'assets/logos/b-logo.png',
-                  height: BSizes.imageThumb,
-                  fit: BoxFit.cover,
-                  color:
-                      Theme.of(context).brightness == Brightness.dark
-                          ? BColors.white
-                          : BColors.primary,
-                ),
+                const BLogo(),
+
                 const SizedBox(height: BSizes.spaceBetweenSections),
 
-                // Welcome Text
-                Text(
-                  'Welcome back,',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Discover Limitless Choices and Unmatched\nConvenience.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color:
-                        isDark
-                            ? BColors.white.withValues(alpha: 0.6)
-                            : BColors.black.withValues(alpha: 0.6),
-                  ),
+                // Header
+                const BAuthHeader(
+                  title: 'Welcome back,',
+                  subtitle:
+                      'Discover Limitless Choices and Unmatched\nConvenience.',
                 ),
 
                 const SizedBox(height: BSizes.spaceBetweenSections),
 
                 // Email Field
-                TextFormField(
+                BEmailField(
                   controller: controller.emailController,
                   validator: controller.validateEmail,
-                  decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.email_outlined),
-                    labelText: 'E-Mail',
-                  ),
-                  keyboardType: TextInputType.emailAddress,
                 ),
 
                 const SizedBox(height: BSizes.spaceBetweenInputFields),
 
                 // Password Field
                 Obx(
-                  () => TextFormField(
+                  () => BPasswordField(
                     controller: controller.passwordController,
                     validator: controller.validatePassword,
                     obscureText: controller.hidePassword.value,
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      labelText: 'Password',
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          controller.hidePassword.value
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                        ),
-                        onPressed: controller.togglePasswordVisibility,
-                      ),
-                    ),
+                    onToggleVisibility: controller.togglePasswordVisibility,
                   ),
                 ),
 
@@ -95,27 +71,14 @@ class LoginScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Obx(
-                      () => Row(
-                        children: [
-                          Checkbox(
-                            value: controller.rememberMe.value,
-                            onChanged: (value) => controller.toggleRememberMe(),
-                          ),
-                          Text(
-                            'Remember Me',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
+                      () => BRememberMeCheckbox(
+                        value: controller.rememberMe.value,
+                        onChanged: (value) => controller.toggleRememberMe(),
                       ),
                     ),
-                    TextButton(
+                    BTextButtonLink(
+                      text: 'Forget Password?',
                       onPressed: controller.forgotPassword,
-                      child: Text(
-                        'Forget Password?',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodySmall?.copyWith(color: BColors.primary),
-                      ),
                     ),
                   ],
                 ),
@@ -124,141 +87,32 @@ class LoginScreen extends StatelessWidget {
 
                 // Sign In Button
                 Obx(
-                  () => SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed:
-                          controller.isLoading.value ? null : controller.signIn,
-                      child:
-                          controller.isLoading.value
-                              ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    BColors.white,
-                                  ),
-                                ),
-                              )
-                              : const Text('Sign In'),
-                    ),
+                  () => BFullWidthButton(
+                    onPressed: controller.signIn,
+                    text: 'Sign In',
+                    isLoading: controller.isLoading.value,
                   ),
                 ),
 
                 const SizedBox(height: BSizes.spaceBetweenItems),
 
                 // Create Account Button
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: controller.navigateToSignUp,
-                    child: const Text('Create Account'),
-                  ),
+                BFullWidthOutlinedButton(
+                  onPressed: controller.navigateToSignUp,
+                  text: 'Create Account',
                 ),
 
                 const SizedBox(height: BSizes.spaceBetweenSections),
 
-                // Divider with Text
-                Row(
-                  children: [
-                    Expanded(
-                      child: Divider(
-                        color:
-                            isDark
-                                ? BColors.white.withValues(alpha: 0.2)
-                                : BColors.black.withValues(alpha: 0.2),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'or Sign In with',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color:
-                              isDark
-                                  ? BColors.white.withValues(alpha: 0.6)
-                                  : BColors.black.withValues(alpha: 0.6),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Divider(
-                        color:
-                            isDark
-                                ? BColors.white.withValues(alpha: 0.2)
-                                : BColors.black.withValues(alpha: 0.2),
-                      ),
-                    ),
-                  ],
-                ),
+                // Divider
+                const BDividerWithText(text: 'or Sign In with'),
 
                 const SizedBox(height: BSizes.spaceBetweenSections),
 
-                // Social Login Buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Google Button
-                    InkWell(
-                      onTap: controller.signInWithGoogle,
-                      borderRadius: BorderRadius.circular(50),
-                      child: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color:
-                                isDark
-                                    ? BColors.white.withValues(alpha: 0.2)
-                                    : BColors.black.withValues(alpha: 0.2),
-                          ),
-                        ),
-                        child: Center(
-                          child: Image.asset(
-                            'assets/logos/google.png', // Add your Google logo
-                            width: 24,
-                            height: 24,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Icon(Icons.g_mobiledata, size: 32);
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(width: 24),
-
-                    // Facebook Button
-                    InkWell(
-                      onTap: controller.signInWithFacebook,
-                      borderRadius: BorderRadius.circular(50),
-                      child: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color:
-                                isDark
-                                    ? BColors.white.withValues(alpha: 0.2)
-                                    : BColors.black.withValues(alpha: 0.2),
-                          ),
-                        ),
-                        child: Center(
-                          child: Image.asset(
-                            'assets/logos/facebook.png', // Add your Facebook logo
-                            width: 24,
-                            height: 24,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Icon(Icons.facebook, size: 32);
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                // Social Login
+                BSocialLoginRow(
+                  onGoogleTap: controller.signInWithGoogle,
+                  onFacebookTap: controller.signInWithFacebook,
                 ),
 
                 const SizedBox(height: BSizes.spaceBetweenSections),

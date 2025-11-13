@@ -1,15 +1,17 @@
-import 'package:ecommerce_app/features/authentication/screens/authscreens/forgot_pass.dart';
-import 'package:ecommerce_app/features/authentication/screens/authscreens/signup.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class LoginController extends GetxController {
+class SignUpController extends GetxController {
   // Text Controllers
+  final firstNameController = TextEditingController();
+  final lastNameController = TextEditingController();
+  final usernameController = TextEditingController();
   final emailController = TextEditingController();
+  final phoneController = TextEditingController();
   final passwordController = TextEditingController();
 
   // Observables
-  final rememberMe = false.obs;
+  final agreeToTerms = false.obs;
   final hidePassword = true.obs;
   final isLoading = false.obs;
 
@@ -18,19 +20,50 @@ class LoginController extends GetxController {
 
   @override
   void onClose() {
+    firstNameController.dispose();
+    lastNameController.dispose();
+    usernameController.dispose();
     emailController.dispose();
+    phoneController.dispose();
     passwordController.dispose();
     super.onClose();
   }
 
-  // Toggle Remember Me
-  void toggleRememberMe() {
-    rememberMe.value = !rememberMe.value;
+  // Toggle Terms Agreement
+  void toggleTermsAgreement() {
+    agreeToTerms.value = !agreeToTerms.value;
   }
 
   // Toggle Password Visibility
   void togglePasswordVisibility() {
     hidePassword.value = !hidePassword.value;
+  }
+
+  // Validate First Name
+  String? validateFirstName(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'First name is required';
+    }
+    return null;
+  }
+
+  // Validate Last Name
+  String? validateLastName(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Last name is required';
+    }
+    return null;
+  }
+
+  // Validate Username
+  String? validateUsername(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Username is required';
+    }
+    if (value.length < 3) {
+      return 'Username must be at least 3 characters';
+    }
+    return null;
   }
 
   // Validate Email
@@ -41,6 +74,17 @@ class LoginController extends GetxController {
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value)) {
       return 'Enter a valid email address';
+    }
+    return null;
+  }
+
+  // Validate Phone
+  String? validatePhone(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Phone number is required';
+    }
+    if (value.length < 10) {
+      return 'Enter a valid phone number';
     }
     return null;
   }
@@ -56,9 +100,20 @@ class LoginController extends GetxController {
     return null;
   }
 
-  // Sign In
-  Future<void> signIn() async {
+  // Sign Up
+  Future<void> signUp() async {
     if (!formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (!agreeToTerms.value) {
+      Get.snackbar(
+        'Terms Required',
+        'Please agree to the Privacy Policy and Terms of Use',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
       return;
     }
 
@@ -68,20 +123,20 @@ class LoginController extends GetxController {
       // Simulate API call
       await Future.delayed(const Duration(seconds: 2));
 
-      // Navigate to home screen
-      // Get.offAll(() => HomeScreen());
-
       Get.snackbar(
         'Success',
-        'Login successful!',
+        'Account created successfully!',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
+
+      // Navigate to verification or home
+      // Get.offAll(() => VerificationScreen());
     } catch (e) {
       Get.snackbar(
         'Error',
-        'Login failed. Please try again.',
+        'Sign up failed. Please try again.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -91,17 +146,15 @@ class LoginController extends GetxController {
     }
   }
 
-  // Sign In with Google
-  Future<void> signInWithGoogle() async {
+  // Sign Up with Google
+  Future<void> signUpWithGoogle() async {
     try {
       isLoading.value = true;
-
-      // Implement Google Sign In
       await Future.delayed(const Duration(seconds: 1));
 
       Get.snackbar(
         'Success',
-        'Google Sign In successful!',
+        'Google Sign Up successful!',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green,
         colorText: Colors.white,
@@ -109,7 +162,7 @@ class LoginController extends GetxController {
     } catch (e) {
       Get.snackbar(
         'Error',
-        'Google Sign In failed.',
+        'Google Sign Up failed.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -119,17 +172,15 @@ class LoginController extends GetxController {
     }
   }
 
-  // Sign In with Facebook
-  Future<void> signInWithFacebook() async {
+  // Sign Up with Facebook
+  Future<void> signUpWithFacebook() async {
     try {
       isLoading.value = true;
-
-      // Implement Facebook Sign In
       await Future.delayed(const Duration(seconds: 1));
 
       Get.snackbar(
         'Success',
-        'Facebook Sign In successful!',
+        'Facebook Sign Up successful!',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green,
         colorText: Colors.white,
@@ -137,7 +188,7 @@ class LoginController extends GetxController {
     } catch (e) {
       Get.snackbar(
         'Error',
-        'Facebook Sign In failed.',
+        'Facebook Sign Up failed.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -145,21 +196,5 @@ class LoginController extends GetxController {
     } finally {
       isLoading.value = false;
     }
-  }
-
-  // Forgot Password
-  void forgotPassword() {
-    Get.to(() => ForgotPasswordScreen());
-    Get.snackbar(
-      'Info',
-      'Redirecting to forgot password...',
-      snackPosition: SnackPosition.BOTTOM,
-    );
-  }
-
-  // Navigate to Sign Up
-  void navigateToSignUp() {
-    // Navigate to Sign Up Screen
-    Get.to(() => SignUpScreen());
   }
 }
