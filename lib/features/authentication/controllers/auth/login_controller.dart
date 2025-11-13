@@ -67,9 +67,12 @@ class LoginController extends GetxController {
 
       // Simulate API call
       await Future.delayed(const Duration(seconds: 2));
-
-      // Navigate to home screen
-      // Get.offAll(() => HomeScreen());
+      // Navigate to home with smooth transition
+      // Get.offAll(
+      //   () => const HomeScreen(),
+      //   transition: Transition.fadeIn,
+      //   duration: const Duration(milliseconds: 250),
+      // );
 
       Get.snackbar(
         'Success',
@@ -149,17 +152,19 @@ class LoginController extends GetxController {
 
   // Forgot Password
   void forgotPassword() {
-    Get.to(() => ForgotPasswordScreen());
-    Get.snackbar(
-      'Info',
-      'Redirecting to forgot password...',
-      snackPosition: SnackPosition.BOTTOM,
+    Get.to(
+      () => const ForgotPasswordScreen(),
+      transition: Transition.rightToLeft,
+      duration: const Duration(milliseconds: 250),
     );
   }
 
   // Navigate to Sign Up
   void navigateToSignUp() {
-    // Navigate to Sign Up Screen
-    Get.to(() => SignUpScreen());
+    Get.to(
+      () => const SignUpScreen(),
+      transition: Transition.rightToLeft,
+      duration: const Duration(milliseconds: 250),
+    );
   }
 }

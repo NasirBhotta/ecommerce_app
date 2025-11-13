@@ -11,14 +11,10 @@ void main() {
   runApp(const EcommrceApp());
 }
 
-// ============================================
-// APP BINDINGS - Pre-register Controllers
-// ============================================
 class AppBindings extends Bindings {
   @override
   void dependencies() {
     // Lazy initialization - controllers created only when needed
-    // This prevents slow navigation by having controllers ready
     Get.lazyPut<LoginController>(() => LoginController(), fenix: true);
     Get.lazyPut<SignUpController>(() => SignUpController(), fenix: true);
     Get.lazyPut<ForgotPasswordController>(
@@ -42,11 +38,7 @@ class EcommrceApp extends StatelessWidget {
       themeMode: ThemeMode.system,
       theme: BAppTheme.lightTheme,
       darkTheme: BAppTheme.darkTheme,
-
-      // Register bindings globally
       initialBinding: AppBindings(),
-
-      // Set default transition for smoother navigation
       defaultTransition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 300),
 

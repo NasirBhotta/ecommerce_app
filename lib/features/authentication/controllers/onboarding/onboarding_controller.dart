@@ -68,8 +68,12 @@ class OnboardingController extends GetxController
 
   void nextPage() {
     if (currentIndex.value == images.length - 1) {
-      // Navigate to next screen
-      Get.to(LoginScreen());
+      // Smooth transition with fade
+      Get.offAll(
+        () => const LoginScreen(),
+        transition: Transition.fadeIn,
+        duration: const Duration(milliseconds: 250),
+      );
     } else {
       pageController.nextPage(
         duration: const Duration(milliseconds: 400),
