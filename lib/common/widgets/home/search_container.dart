@@ -2,58 +2,67 @@ import 'package:ecommerce_app/util/constants/sized.dart';
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
 import 'package:flutter/material.dart';
 
-class BSearchContainer extends StatelessWidget {
-  const BSearchContainer({
+class BSearchField extends StatelessWidget {
+  const BSearchField({
     super.key,
-    required this.text,
-    this.icon,
-    this.showBackground = true,
-    this.showBorder = true,
-    this.onTap,
-    this.padding = const EdgeInsets.symmetric(horizontal: BSizes.paddingMd),
+    required this.controller,
+    required this.onChanged,
+    this.hintText = 'Search in Store',
+    this.onClear,
+    this.showClearButton = false,
   });
 
-  final String text;
-  final IconData? icon;
-  final bool showBackground, showBorder;
-  final VoidCallback? onTap;
-  final EdgeInsetsGeometry padding;
+  final TextEditingController controller;
+  final Function(String) onChanged;
+  final String hintText;
+  final VoidCallback? onClear;
+  final bool showClearButton;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Padding(
-        padding: padding,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(BSizes.paddingMd),
-          decoration: BoxDecoration(
-            color:
-                showBackground
-                    ? isDark
-                        ? BColors.black
-                        : BColors.white
-                    : Colors.transparent,
-            borderRadius: BorderRadius.circular(BSizes.borderRadius),
-            border: showBorder ? Border.all(color: BColors.grey) : null,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: BSizes.paddingMd),
+      child: TextField(
+        controller: controller,
+        onChanged: onChanged,
+        style: Theme.of(context).textTheme.bodyMedium,
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: isDark ? BColors.white70 : BColors.grey,
           ),
-          child: Row(
-            children: [
-              Icon(
-                icon ?? Icons.search,
-                color: isDark ? BColors.white70 : BColors.grey,
-              ),
-              const SizedBox(width: BSizes.spaceBetweenItems),
-              Text(
-                text,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: isDark ? BColors.white70 : BColors.grey,
-                ),
-              ),
-            ],
+          prefixIcon: Icon(
+            Icons.search,
+            color: isDark ? BColors.white70 : BColors.grey,
+          ),
+          suffixIcon:
+              showClearButton
+                  ? IconButton(
+                    icon: Icon(
+                      Icons.clear,
+                      color: isDark ? BColors.white70 : BColors.grey,
+                    ),
+                    onPressed: onClear,
+                  )
+                  : null,
+          filled: true,
+          fillColor: isDark ? BColors.black : BColors.white,
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(BSizes.borderRadius),
+            borderSide: BorderSide(
+              color: isDark ? BColors.white70 : BColors.grey,
+              width: 1,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(BSizes.borderRadius),
+            borderSide: const BorderSide(color: BColors.primary, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: BSizes.paddingMd,
+            vertical: BSizes.paddingMd,
           ),
         ),
       ),
