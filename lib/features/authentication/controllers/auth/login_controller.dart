@@ -1,5 +1,6 @@
 import 'package:ecommerce_app/features/authentication/screens/authscreens/forgot_pass.dart';
 import 'package:ecommerce_app/features/authentication/screens/authscreens/signup.dart';
+import 'package:ecommerce_app/features/shop/screens/navigation_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -68,11 +69,11 @@ class LoginController extends GetxController {
       // Simulate API call
       await Future.delayed(const Duration(seconds: 2));
       // Navigate to home with smooth transition
-      // Get.offAll(
-      //   () => const HomeScreen(),
-      //   transition: Transition.fadeIn,
-      //   duration: const Duration(milliseconds: 250),
-      // );
+      Get.offAll(
+        () => const NavigationMenu(),
+        transition: Transition.fadeIn,
+        duration: const Duration(milliseconds: 250),
+      );
 
       Get.snackbar(
         'Success',

@@ -3,6 +3,7 @@ import 'package:ecommerce_app/features/authentication/controllers/auth/login_con
 import 'package:ecommerce_app/features/authentication/controllers/auth/reset_pass_controller.dart';
 import 'package:ecommerce_app/features/authentication/controllers/auth/signup_controller.dart';
 import 'package:ecommerce_app/features/authentication/screens/onboarding/onboarding.dart';
+import 'package:ecommerce_app/features/shop/controllers/navigation_controller.dart';
 import 'package:ecommerce_app/util/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -23,6 +24,10 @@ class AppBindings extends Bindings {
     );
     Get.lazyPut<ResetPasswordController>(
       () => ResetPasswordController(),
+      fenix: true,
+    );
+    Get.lazyPut<NavigationController>(
+      () => NavigationController(),
       fenix: true,
     );
   }
