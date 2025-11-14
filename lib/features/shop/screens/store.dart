@@ -1,9 +1,9 @@
+import 'package:ecommerce_app/common/widgets/home/product_card.dart';
 import 'package:ecommerce_app/common/widgets/home/search_container.dart';
 import 'package:ecommerce_app/common/widgets/home/section_heading.dart';
 import 'package:ecommerce_app/common/widgets/store/brand_card.dart';
 import 'package:ecommerce_app/common/widgets/store/brand_showcase.dart';
 import 'package:ecommerce_app/common/widgets/store/category_tab.dart';
-import 'package:ecommerce_app/common/widgets/store/horizontal_product_card.dart';
 import 'package:ecommerce_app/features/shop/controllers/store_controller.dart';
 import 'package:ecommerce_app/util/constants/sized.dart';
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
@@ -73,40 +73,69 @@ class StoreScreen extends StatelessWidget {
               pinned: true,
               floating: true,
               backgroundColor: isDark ? BColors.black : BColors.white,
-              expandedHeight: 180,
-              flexibleSpace: Padding(
-                padding: const EdgeInsets.all(BSizes.paddingMd),
-                child: ListView(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: [
-                    const SizedBox(height: BSizes.spaceBetweenItems),
-                    // Search Bar
-                    Obx(
-                      () => BSearchField(
-                        controller: controller.searchController,
-                        onChanged: controller.onSearchChanged,
-                        hintText: 'Search in Store',
-                        showClearButton: controller.isSearching.value,
-                        onClear: controller.clearSearch,
+              expandedHeight: BSizes.screenHeight * 0.42,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Padding(
+                  padding: const EdgeInsets.only(
+                    left: BSizes.paddingMd,
+                    right: BSizes.paddingMd,
+                    top: BSizes.paddingMd,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Search Bar
+                      Obx(
+                        () => BSearchField(
+                          controller: controller.searchController,
+                          onChanged: controller.onSearchChanged,
+                          hintText: 'Search in Store',
+                          showClearButton: controller.isSearching.value,
+                          onClear: controller.clearSearch,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: BSizes.spaceBetweenSections),
-                    // Featured Brands Header
-                    BSectionHeading(
-                      title: 'Featured Brands',
-                      onPressed: () {
-                        Get.snackbar(
-                          'Brands',
-                          'Viewing all brands...',
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: BColors.primary.withOpacity(0.8),
-                          colorText: BColors.white,
-                          duration: const Duration(seconds: 2),
-                        );
-                      },
-                    ),
-                  ],
+                      const SizedBox(height: BSizes.spaceBetweenSections),
+                      // Featured Brands Header
+                      BSectionHeading(
+                        title: 'Featured Brands',
+                        onPressed: () {
+                          Get.snackbar(
+                            'Brands',
+                            'Viewing all brands...',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: BColors.primary.withOpacity(0.8),
+                            colorText: BColors.white,
+                            duration: const Duration(seconds: 2),
+                          );
+                        },
+                      ),
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: EdgeInsets.zero,
+                        itemCount: 4,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: BSizes.spaceBetweenItems,
+                              crossAxisSpacing: BSizes.spaceBetweenItems,
+                              mainAxisExtent: 80,
+                            ),
+                        itemBuilder: (_, index) {
+                          final brand = controller.featuredBrands[index];
+                          return BBrandCard(
+                            brandName: brand['name'] as String,
+                            productCount: brand['productCount'] as int,
+                            verified: brand['verified'] as bool,
+                            onTap:
+                                () => controller.viewBrandProducts(
+                                  brand['name'] as String,
+                                ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
               // Category Tabs
@@ -143,54 +172,21 @@ class StoreScreen extends StatelessWidget {
             padding: const EdgeInsets.all(BSizes.paddingMd),
             child: Column(
               children: [
-                // Featured Brands Grid (2x2)
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  padding: EdgeInsets.zero,
-                  itemCount: 4,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: BSizes.spaceBetweenItems,
-                    crossAxisSpacing: BSizes.spaceBetweenItems,
-                    mainAxisExtent: 80,
-                  ),
-                  itemBuilder: (_, index) {
-                    final brand = controller.featuredBrands[index];
-                    return BBrandCard(
-                      brandName: brand['name'] as String,
-                      productCount: brand['productCount'] as int,
-                      verified: brand['verified'] as bool,
-                      onTap:
-                          () => controller.viewBrandProducts(
-                            brand['name'] as String,
-                          ),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: BSizes.spaceBetweenSections),
-
                 // Brand Showcases with Products
-                Obx(() {
-                  final brands = controller.filteredBrands;
-                  return Column(
-                    children: List.generate(brands.length, (index) {
-                      final brand = brands[index];
-                      final products =
-                          brand['products'] as List<Map<String, String>>;
+                ...List.generate(controller.filteredBrands.length, (index) {
+                  final brand = controller.filteredBrands[index];
+                  final products =
+                      brand['products'] as List<Map<String, String>>;
 
-                      return BBrandShowcase(
-                        brandName: brand['name'] as String,
-                        productCount: brand['productCount'] as int,
-                        verified: brand['verified'] as bool,
-                        products: products,
-                        onBrandTap:
-                            () => controller.viewBrandProducts(
-                              brand['name'] as String,
-                            ),
-                      );
-                    }),
+                  return BBrandShowcase(
+                    brandName: brand['name'] as String,
+                    productCount: brand['productCount'] as int,
+                    verified: brand['verified'] as bool,
+                    products: products,
+                    onBrandTap:
+                        () => controller.viewBrandProducts(
+                          brand['name'] as String,
+                        ),
                   );
                 }),
 
@@ -213,41 +209,46 @@ class StoreScreen extends StatelessWidget {
 
                 const SizedBox(height: BSizes.spaceBetweenItems),
 
-                // Horizontal Product List
-                SizedBox(
-                  height: 230,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: controller.suggestedProducts.length,
-                    itemBuilder: (_, index) {
-                      final product = controller.suggestedProducts[index];
-                      return BProductCardHorizontal(
-                        productName: product['name']!,
-                        price: product['price']!,
-                        discount: product['discount'],
-                        onTap: () {
-                          Get.snackbar(
-                            'Product',
-                            'You tapped on ${product['name']}',
-                            snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: BColors.primary.withOpacity(0.8),
-                            colorText: BColors.white,
-                            duration: const Duration(seconds: 2),
-                          );
-                        },
-                        onFavoriteTap: () {
-                          Get.snackbar(
-                            'Wishlist',
-                            '${product['name']} added to wishlist',
-                            snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: BColors.secondary.withOpacity(0.8),
-                            colorText: BColors.white,
-                            duration: const Duration(seconds: 2),
-                          );
-                        },
-                      );
-                    },
+                // Products Grid
+                GridView.builder(
+                  itemCount: controller.suggestedProducts.length,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: BSizes.spaceBetweenItems,
+                    crossAxisSpacing: BSizes.spaceBetweenItems,
+                    mainAxisExtent: 288,
                   ),
+                  itemBuilder: (_, index) {
+                    final product = controller.suggestedProducts[index];
+                    return BProductCardVertical(
+                      productName: product['name']!,
+                      price: product['price']!,
+                      discount: product['discount'],
+                      onTap: () {
+                        Get.snackbar(
+                          'Product',
+                          'You tapped on ${product['name']}',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: BColors.primary.withOpacity(0.8),
+                          colorText: BColors.white,
+                          duration: const Duration(seconds: 2),
+                        );
+                      },
+                      onFavoriteTap: () {
+                        Get.snackbar(
+                          'Wishlist',
+                          '${product['name']} added to wishlist',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: BColors.secondary.withOpacity(0.8),
+                          colorText: BColors.white,
+                          duration: const Duration(seconds: 2),
+                        );
+                      },
+                    );
+                  },
                 ),
 
                 const SizedBox(height: BSizes.spaceBetweenSections),

@@ -72,6 +72,7 @@ class OnboardingController extends GetxController
       Get.offAll(
         () => const LoginScreen(),
         transition: Transition.fadeIn,
+
         duration: const Duration(milliseconds: 250),
       );
     } else {
