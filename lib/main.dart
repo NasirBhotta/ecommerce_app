@@ -6,7 +6,7 @@ import 'package:ecommerce_app/features/authentication/screens/onboarding/onboard
 import 'package:ecommerce_app/features/shop/controllers/home_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/navigation_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/product_detail_controller.dart';
-import 'package:ecommerce_app/features/shop/screens/navigation_menu.dart';
+import 'package:ecommerce_app/features/shop/controllers/store_controller.dart';
 import 'package:ecommerce_app/util/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -39,6 +39,8 @@ class AppBindings extends Bindings {
       () => ProductDetailController(),
       fenix: true,
     );
+
+    Get.lazyPut<StoreController>(() => StoreController(), fenix: true);
   }
 }
 
