@@ -1,9 +1,9 @@
-// ============ PRODUCT CARD VERTICAL ============
 import 'package:ecommerce_app/util/constants/sized.dart';
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
-class BProductCardVertical extends StatelessWidget {
+class BProductCardVertical extends StatefulWidget {
   const BProductCardVertical({
     super.key,
     required this.productName,
@@ -22,11 +22,28 @@ class BProductCardVertical extends StatelessWidget {
   final VoidCallback? onFavoriteTap;
 
   @override
+  State<BProductCardVertical> createState() => _BProductCardVerticalState();
+}
+
+class _BProductCardVerticalState extends State<BProductCardVertical> {
+  final RxInt quantity = 0.obs;
+
+  void increaseQuantity() {
+    quantity.value++;
+  }
+
+  void decreaseQuantity() {
+    if (quantity.value > 0) {
+      quantity.value--;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Container(
         width: 180,
         padding: const EdgeInsets.all(1),
@@ -65,7 +82,7 @@ class BProductCardVertical extends StatelessWidget {
                     ),
                   ),
                   // Discount Badge
-                  if (discount != null)
+                  if (widget.discount != null)
                     Positioned(
                       top: 12,
                       left: 12,
@@ -79,7 +96,7 @@ class BProductCardVertical extends StatelessWidget {
                           borderRadius: BorderRadius.circular(BSizes.paddingSm),
                         ),
                         child: Text(
-                          discount!,
+                          widget.discount!,
                           style: Theme.of(context).textTheme.labelSmall!.apply(
                             color: BColors.black,
                             fontWeightDelta: 2,
@@ -103,7 +120,7 @@ class BProductCardVertical extends StatelessWidget {
                         icon: const Icon(Icons.favorite_border),
                         iconSize: 20,
                         color: isDark ? BColors.white : BColors.black,
-                        onPressed: onFavoriteTap ?? () {},
+                        onPressed: widget.onFavoriteTap ?? () {},
                       ),
                     ),
                   ),
@@ -118,19 +135,115 @@ class BProductCardVertical extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    productName,
+                    widget.productName,
                     style: Theme.of(context).textTheme.labelLarge,
                     overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
+                    maxLines: 1,
+                  ),
+                  const SizedBox(height: 2),
+                  // Brand with verification
+                  Row(
+                    children: [
+                      Text(
+                        'Nike',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall!.apply(color: BColors.grey),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.verified,
+                        size: 12,
+                        color: BColors.primary,
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    price,
-                    style: Theme.of(context).textTheme.titleMedium!.apply(
-                      color: BColors.primary,
-                      fontWeightDelta: 2,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                  // Price and Add Button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        widget.price,
+                        style: Theme.of(context).textTheme.titleMedium!.apply(
+                          color: BColors.primary,
+                          fontWeightDelta: 2,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      // Quantity Selector
+                      Obx(
+                        () => Container(
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color:
+                                quantity.value > 0
+                                    ? BColors.primary
+                                    : (isDark
+                                        ? BColors.grey.withOpacity(0.3)
+                                        : BColors.black),
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                          child:
+                              quantity.value > 0
+                                  ? Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      InkWell(
+                                        onTap: decreaseQuantity,
+                                        child: SizedBox(
+                                          width: 32,
+                                          height: 32,
+                                          child: const Icon(
+                                            Icons.remove,
+                                            color: BColors.white,
+                                            size: 16,
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                        ),
+                                        child: Text(
+                                          '${quantity.value}',
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.labelMedium!.apply(
+                                            color: BColors.white,
+                                            fontWeightDelta: 2,
+                                          ),
+                                        ),
+                                      ),
+                                      InkWell(
+                                        onTap: increaseQuantity,
+                                        child: SizedBox(
+                                          width: 32,
+                                          height: 32,
+                                          child: const Icon(
+                                            Icons.add,
+                                            color: BColors.white,
+                                            size: 16,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                  : InkWell(
+                                    onTap: increaseQuantity,
+                                    child: SizedBox(
+                                      width: 32,
+                                      height: 32,
+                                      child: const Icon(
+                                        Icons.add,
+                                        color: BColors.white,
+                                        size: 16,
+                                      ),
+                                    ),
+                                  ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
