@@ -1,5 +1,6 @@
 import 'package:ecommerce_app/features/shop/controllers/navigation_controller.dart';
 import 'package:ecommerce_app/features/shop/screens/home.dart';
+import 'package:ecommerce_app/features/shop/screens/store.dart';
 import 'package:ecommerce_app/features/shop/screens/temp_placeholders.dart';
 
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
