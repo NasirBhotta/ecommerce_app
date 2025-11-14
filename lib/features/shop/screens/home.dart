@@ -8,7 +8,6 @@ import 'package:ecommerce_app/common/widgets/home/search_container.dart';
 import 'package:ecommerce_app/common/widgets/home/section_heading.dart';
 import 'package:ecommerce_app/common/widgets/home/vertical_image_text.dart';
 import 'package:ecommerce_app/features/shop/controllers/home_controller.dart';
-import 'package:ecommerce_app/features/shop/screens/product_detail.dart';
 import 'package:ecommerce_app/util/constants/sized.dart';
 
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
