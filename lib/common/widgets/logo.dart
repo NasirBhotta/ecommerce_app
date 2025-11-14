@@ -1,3 +1,4 @@
+import 'package:ecommerce_app/util/constants/sized.dart';
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -12,36 +13,13 @@ class BLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            color: BColors.primary,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Center(
-            child: Text(
-              letter,
-              style: TextStyle(
-                color: BColors.white,
-                fontSize: size * 0.64,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Container(
-          width: size * 0.24,
-          height: size * 0.24,
-          decoration: const BoxDecoration(
-            color: BColors.primary,
-            shape: BoxShape.circle,
-          ),
-        ),
-      ],
+    return Image.asset(
+      'assets/logos/b-logo.png',
+      height: BSizes.imageThumb,
+      color:
+          Theme.of(context).brightness == Brightness.dark
+              ? BColors.primary
+              : BColors.primary,
     );
   }
 }

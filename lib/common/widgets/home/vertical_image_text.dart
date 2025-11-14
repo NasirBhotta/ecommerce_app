@@ -53,7 +53,7 @@ class BVerticalImageText extends StatelessWidget {
               child: Text(
                 title,
                 style: Theme.of(context).textTheme.labelMedium!.apply(
-                  color: isDark ? BColors.white : BColors.black,
+                  color: isDark ? BColors.black : BColors.white70,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

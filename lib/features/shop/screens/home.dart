@@ -74,7 +74,7 @@ class HomeScreen extends StatelessWidget {
                                           .apply(color: BColors.white70),
                                     ),
                                     Text(
-                                      'Taimoor Sikander',
+                                      'Nasir Bhutta',
                                       style: Theme.of(context)
                                           .textTheme
                                           .headlineSmall!

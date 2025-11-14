@@ -5,6 +5,7 @@ import 'package:ecommerce_app/features/authentication/controllers/auth/signup_co
 import 'package:ecommerce_app/features/authentication/screens/onboarding/onboarding.dart';
 import 'package:ecommerce_app/features/shop/controllers/home_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/navigation_controller.dart';
+import 'package:ecommerce_app/features/shop/screens/navigation_menu.dart';
 import 'package:ecommerce_app/util/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -49,7 +50,7 @@ class EcommrceApp extends StatelessWidget {
       defaultTransition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 300),
 
-      home: const OnboardingScreen(),
+      home: const NavigationMenu(),
       debugShowCheckedModeBanner: false,
     );
   }
