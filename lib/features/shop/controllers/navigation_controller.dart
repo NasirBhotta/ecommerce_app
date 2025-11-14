@@ -1,6 +1,7 @@
 import 'package:ecommerce_app/features/shop/screens/home.dart';
 import 'package:ecommerce_app/features/shop/screens/store.dart';
 import 'package:ecommerce_app/features/shop/screens/temp_placeholders.dart';
+import 'package:ecommerce_app/features/shop/screens/whishlist_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

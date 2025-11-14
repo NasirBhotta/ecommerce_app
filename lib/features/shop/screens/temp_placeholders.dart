@@ -3,38 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
 // ============================================
-// WISHLIST SCREEN (Placeholder)
-// ============================================
-class WishlistScreen extends StatelessWidget {
-  const WishlistScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Wishlist'), centerTitle: true),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Iconsax.heart5, size: 100, color: BColors.primary),
-            SizedBox(height: 20),
-            Text(
-              'Wishlist Screen',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Coming Soon...',
-              style: TextStyle(fontSize: 16, color: BColors.grey),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ============================================
 // PROFILE SCREEN (Placeholder)
 // ============================================
 class ProfileScreen extends StatelessWidget {

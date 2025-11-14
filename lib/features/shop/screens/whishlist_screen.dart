@@ -1,4 +1,5 @@
 import 'package:ecommerce_app/common/widgets/home/product_card.dart';
+import 'package:ecommerce_app/features/shop/controllers/whishlist_controller.dart';
 import 'package:ecommerce_app/util/constants/sized.dart';
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
 import 'package:flutter/material.dart';
@@ -221,7 +222,6 @@ class WishlistScreen extends StatelessWidget {
                       onFavoriteTap: () {
                         controller.removeFromWishlist(product['name']);
                       },
-                      isFavorite: true, // This product is in wishlist
                     );
                   },
                 ),

@@ -8,6 +8,7 @@ import 'package:ecommerce_app/common/widgets/home/search_container.dart';
 import 'package:ecommerce_app/common/widgets/home/section_heading.dart';
 import 'package:ecommerce_app/common/widgets/home/vertical_image_text.dart';
 import 'package:ecommerce_app/features/shop/controllers/home_controller.dart';
+
 import 'package:ecommerce_app/util/constants/sized.dart';
 
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
@@ -20,7 +21,8 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<HomeController>();
+    final controller = Get.put(HomeController());
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -89,7 +91,17 @@ class HomeScreen extends StatelessWidget {
                                         Iconsax.shopping_bag,
                                         color: BColors.white,
                                       ),
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        Get.snackbar(
+                                          'Cart',
+                                          'Opening shopping cart...',
+                                          snackPosition: SnackPosition.BOTTOM,
+                                          backgroundColor: BColors.primary
+                                              .withOpacity(0.8),
+                                          colorText: BColors.white,
+                                          duration: const Duration(seconds: 2),
+                                        );
+                                      },
                                     ),
                                     Positioned(
                                       right: 0,
@@ -167,7 +179,21 @@ class HomeScreen extends StatelessWidget {
                                                   title:
                                                       controller
                                                           .categories[index]['title']!,
-                                                  onTap: () {},
+                                                  onTap: () {
+                                                    Get.snackbar(
+                                                      'Category',
+                                                      'You selected ${controller.categories[index]['title']}',
+                                                      snackPosition:
+                                                          SnackPosition.BOTTOM,
+                                                      backgroundColor: BColors
+                                                          .primary
+                                                          .withOpacity(0.8),
+                                                      colorText: BColors.white,
+                                                      duration: const Duration(
+                                                        seconds: 2,
+                                                      ),
+                                                    );
+                                                  },
                                                 );
                                               },
                                             ),
@@ -230,11 +256,30 @@ class HomeScreen extends StatelessWidget {
                             productName: product['name']!,
                             price: product['price']!,
                             discount: product['discount'],
-                            onTap:
-                                () => controller.navigateToDetailedScreen(
-                                  product,
+                            onTap: () {
+                              Get.snackbar(
+                                'Product',
+                                'You tapped on ${product['name']}',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: BColors.primary.withOpacity(
+                                  0.8,
                                 ),
-                            onFavoriteTap: () {},
+                                colorText: BColors.white,
+                                duration: const Duration(seconds: 2),
+                              );
+                            },
+                            onFavoriteTap: () {
+                              Get.snackbar(
+                                'Wishlist',
+                                '${product['name']} added to wishlist',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: BColors.secondary.withOpacity(
+                                  0.8,
+                                ),
+                                colorText: BColors.white,
+                                duration: const Duration(seconds: 2),
+                              );
+                            },
                           );
                         },
                       ),
@@ -248,123 +293,118 @@ class HomeScreen extends StatelessWidget {
                     // Promo Slider
                     Column(
                       children: [
-                        SizedBox(
-                          width: BSizes.screenWidth * 0.8,
-                          child: CarouselSlider(
-                            options: CarouselOptions(
-                              viewportFraction: 1,
-                              height: 200,
-                              autoPlay: true,
-                              autoPlayInterval: const Duration(seconds: 4),
-                              autoPlayAnimationDuration: const Duration(
-                                milliseconds: 800,
-                              ),
-                              autoPlayCurve: Curves.fastOutSlowIn,
-                              enlargeCenterPage: true,
-                              onPageChanged:
-                                  (index, _) =>
-                                      controller.updatePageIndicator(index),
+                        CarouselSlider(
+                          options: CarouselOptions(
+                            viewportFraction: 1,
+                            height: 200,
+                            autoPlay: true,
+                            autoPlayInterval: const Duration(seconds: 4),
+                            autoPlayAnimationDuration: const Duration(
+                              milliseconds: 800,
                             ),
-                            items: [
-                              BRoundedImage(
-                                imageUrl:
-                                    'assets/images/banners/promo-banner-1.png',
-                                backgroundColor:
-                                    isDark
-                                        ? BColors.grey.withOpacity(0.1)
-                                        : BColors.grey.withOpacity(0.1),
-                                padding: const EdgeInsets.all(BSizes.paddingMd),
-                                height: 200,
-                                width: double.infinity,
-                                // child: Container(
-                                //   padding: const EdgeInsets.all(BSizes.paddingLg),
-                                //   child: Column(
-                                //     crossAxisAlignment: CrossAxisAlignment.start,
-                                //     mainAxisAlignment: MainAxisAlignment.center,
-                                //     children: [
-                                //       Text(
-                                //         'SNEAKERS OF\nTHE WEEK',
-                                //         style: Theme.of(
-                                //           context,
-                                //         ).textTheme.headlineMedium!.apply(
-                                //           color:
-                                //               isDark
-                                //                   ? BColors.white
-                                //                   : BColors.black,
-                                //           fontWeightDelta: 2,
-                                //         ),
-                                //       ),
-                                //     ],
-                                //   ),
-                                // ),
-                              ),
-                              Container(
-                                height: 200,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(
-                                    BSizes.cardRadius,
-                                  ),
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      BColors.primary,
-                                      BColors.secondary,
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                ),
-                                child: Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(
-                                      BSizes.paddingLg,
-                                    ),
-                                    child: Text(
-                                      'Summer Sale\n50% OFF',
-                                      textAlign: TextAlign.center,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.headlineMedium!.apply(
-                                        color: BColors.white,
-                                        fontWeightDelta: 2,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                height: 200,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(
-                                    BSizes.cardRadius,
-                                  ),
-                                  color:
-                                      isDark
-                                          ? BColors.grey.withOpacity(0.2)
-                                          : BColors.grey.withOpacity(0.1),
-                                ),
-                                child: Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(
-                                      BSizes.paddingLg,
-                                    ),
-                                    child: Text(
-                                      'New Arrivals\nCheck Now!',
-                                      textAlign: TextAlign.center,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.headlineMedium!.apply(
-                                        color:
-                                            isDark
-                                                ? BColors.white
-                                                : BColors.black,
-                                        fontWeightDelta: 2,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                            autoPlayCurve: Curves.fastOutSlowIn,
+                            enlargeCenterPage: true,
+                            onPageChanged:
+                                (index, _) =>
+                                    controller.updatePageIndicator(index),
                           ),
+                          items: [
+                            BRoundedImage(
+                              imageUrl:
+                                  'assets/images/banners/promo-banner-1.png',
+                              backgroundColor:
+                                  isDark
+                                      ? BColors.grey.withOpacity(0.1)
+                                      : BColors.grey.withOpacity(0.1),
+                              padding: const EdgeInsets.all(BSizes.paddingMd),
+                              height: 200,
+                              width: double.infinity,
+                              // child: Container(
+                              //   padding:
+                              //       const EdgeInsets.all(BSizes.paddingLg),
+                              //   child: Column(
+                              //     crossAxisAlignment: CrossAxisAlignment.start,
+                              //     mainAxisAlignment: MainAxisAlignment.center,
+                              //     children: [
+                              //       Text(
+                              //         'SNEAKERS OF\nTHE WEEK',
+                              //         style: Theme.of(context)
+                              //             .textTheme
+                              //             .headlineMedium!
+                              //             .apply(
+                              //               color: isDark
+                              //                   ? BColors.white
+                              //                   : BColors.black,
+                              //               fontWeightDelta: 2,
+                              //             ),
+                              //       ),
+                              //     ],
+                              //   ),
+                              // ),
+                            ),
+                            Container(
+                              height: 200,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(
+                                  BSizes.cardRadius,
+                                ),
+                                gradient: LinearGradient(
+                                  colors: [BColors.primary, BColors.secondary],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                              child: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                    BSizes.paddingLg,
+                                  ),
+                                  child: Text(
+                                    'Summer Sale\n50% OFF',
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.headlineMedium!.apply(
+                                      color: BColors.white,
+                                      fontWeightDelta: 2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Container(
+                              height: 200,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(
+                                  BSizes.cardRadius,
+                                ),
+                                color:
+                                    isDark
+                                        ? BColors.grey.withOpacity(0.2)
+                                        : BColors.grey.withOpacity(0.1),
+                              ),
+                              child: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                    BSizes.paddingLg,
+                                  ),
+                                  child: Text(
+                                    'New Arrivals\nCheck Now!',
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.headlineMedium!.apply(
+                                      color:
+                                          isDark
+                                              ? BColors.white
+                                              : BColors.black,
+                                      fontWeightDelta: 2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: BSizes.spaceBetweenItems),
                         // Carousel Indicator
@@ -396,7 +436,16 @@ class HomeScreen extends StatelessWidget {
                     // Popular Products Section
                     BSectionHeading(
                       title: 'Popular Products',
-                      onPressed: () {},
+                      onPressed: () {
+                        Get.snackbar(
+                          'View All',
+                          'Showing all products...',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: BColors.primary.withOpacity(0.8),
+                          colorText: BColors.white,
+                          duration: const Duration(seconds: 2),
+                        );
+                      },
                     ),
                     const SizedBox(height: BSizes.spaceBetweenItems),
 
@@ -419,9 +468,16 @@ class HomeScreen extends StatelessWidget {
                           productName: product['name']!,
                           price: product['price']!,
                           discount: product['discount'],
-                          onTap:
-                              () =>
-                                  controller.navigateToDetailedScreen(product),
+                          onTap: () {
+                            Get.snackbar(
+                              'Product',
+                              'You tapped on ${product['name']}',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: BColors.primary.withOpacity(0.8),
+                              colorText: BColors.white,
+                              duration: const Duration(seconds: 2),
+                            );
+                          },
                           onFavoriteTap: () {
                             Get.snackbar(
                               'Wishlist',
