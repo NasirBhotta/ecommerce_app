@@ -1,4 +1,5 @@
 import 'package:ecommerce_app/common/widgets/store/brand_card.dart';
+import 'package:ecommerce_app/common/widgets/store/product_image.dart';
 import 'package:ecommerce_app/util/constants/sized.dart';
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
 import 'package:flutter/material.dart';
