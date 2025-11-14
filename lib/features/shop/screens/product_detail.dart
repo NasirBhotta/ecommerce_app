@@ -1,3 +1,4 @@
+import 'package:ecommerce_app/features/shop/controllers/product_detail_controller.dart';
 import 'package:ecommerce_app/util/constants/sized.dart';
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
 import 'package:flutter/material.dart';
