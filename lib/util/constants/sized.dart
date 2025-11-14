@@ -1,5 +1,10 @@
+import 'package:get/get.dart';
+
 /// Centralized class for app spacing, sizing, and dimensions.
 class BSizes {
+  // screen sizes
+  static double get screenWidth => Get.width;
+  static double get screenHeight => Get.height;
   // Padding & Margin
   static const double paddingXs = 4.0;
   static const double paddingSm = 8.0;

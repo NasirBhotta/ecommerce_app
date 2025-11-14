@@ -1,3 +1,4 @@
+import 'package:ecommerce_app/features/shop/screens/product_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -124,6 +125,17 @@ class HomeController extends GetxController {
     searchController.clear();
     searchQuery.value = '';
     isSearching.value = false;
+  }
+
+  void navigateToDetailedScreen(Map<String, String> product) {
+    Get.to(
+      () => ProductDetailScreen(
+        productName: product['name']!,
+        price: product['price']!,
+        discount: product['discount'],
+      ),
+      transition: Transition.rightToLeft,
+    );
   }
 
   // Sample categories data
