@@ -8,6 +8,7 @@ import 'package:ecommerce_app/common/widgets/home/search_container.dart';
 import 'package:ecommerce_app/common/widgets/home/section_heading.dart';
 import 'package:ecommerce_app/common/widgets/home/vertical_image_text.dart';
 import 'package:ecommerce_app/features/shop/controllers/home_controller.dart';
+import 'package:ecommerce_app/features/shop/screens/product_detail.dart';
 import 'package:ecommerce_app/util/constants/sized.dart';
 
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
@@ -241,6 +242,9 @@ class HomeScreen extends StatelessWidget {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         padding: EdgeInsets.zero,
+                        // Update the onTap in your HomeScreen's GridView.builder
+
+                        // In the GridView.builder for products, replace the onTap:
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
@@ -249,21 +253,21 @@ class HomeScreen extends StatelessWidget {
                               mainAxisExtent: 288,
                             ),
                         itemBuilder: (_, index) {
-                          final product = filteredProducts[index];
+                          final product = controller.allProducts[index];
                           return BProductCardVertical(
                             productName: product['name']!,
                             price: product['price']!,
                             discount: product['discount'],
                             onTap: () {
-                              Get.snackbar(
-                                'Product',
-                                'You tapped on ${product['name']}',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: BColors.primary.withOpacity(
-                                  0.8,
+                              // Navigate to Product Detail Screen
+                              Get.to(
+                                () => ProductDetailScreen(
+                                  productName: product['name']!,
+                                  price: product['price']!,
+                                  discount: product['discount'],
                                 ),
-                                colorText: BColors.white,
-                                duration: const Duration(seconds: 2),
+                                transition: Transition.rightToLeft,
+                                duration: const Duration(milliseconds: 300),
                               );
                             },
                             onFavoriteTap: () {
@@ -280,6 +284,9 @@ class HomeScreen extends StatelessWidget {
                             },
                           );
                         },
+
+                        // Also add this import at the top of your home_screen.dart:
+                        // import 'package:ecommerce_app/features/shop/screens/product_detail_screen.dart';
                       ),
                     ],
                   );
