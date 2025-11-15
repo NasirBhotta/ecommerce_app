@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "733719165364",
+    "firebase_url": "https://eventify-c1bae-default-rtdb.firebaseio.com",
+    "project_id": "eventify-c1bae",
+    "storage_bucket": "eventify-c1bae.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:733719165364:android:f7b299725647229f1d1ae1",
+        "android_client_info": {
+          "package_name": "com.example.ecommerce_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3-w7ZCyEkFiwslBXvvENh0LEGMZgsRpk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:733719165364:android:dddc8566968264e41d1ae1",
+        "android_client_info": {
+          "package_name": "com.example.eventify"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3-w7ZCyEkFiwslBXvvENh0LEGMZgsRpk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:733719165364:android:3aa78ab6e594d37e1d1ae1",
+        "android_client_info": {
+          "package_name": "com.taskmanager.app.task_manager"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3-w7ZCyEkFiwslBXvvENh0LEGMZgsRpk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
