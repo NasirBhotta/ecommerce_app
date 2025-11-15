@@ -19,7 +19,7 @@ class ProductDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(ProductDetailController());
+    final controller = Get.find<ProductDetailController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(

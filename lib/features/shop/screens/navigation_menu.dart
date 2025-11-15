@@ -14,7 +14,7 @@ class NavigationMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(NavigationController());
+    final controller = Get.find<NavigationController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // List of screens (to be replaced with actual screens later)

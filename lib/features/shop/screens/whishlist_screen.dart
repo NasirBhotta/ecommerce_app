@@ -11,7 +11,7 @@ class WishlistScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(WishlistController());
+    final controller = Get.find<WishlistController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Add sample data for demo (remove in production)

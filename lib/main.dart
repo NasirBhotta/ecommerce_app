@@ -3,8 +3,16 @@ import 'package:ecommerce_app/features/authentication/controllers/auth/login_con
 import 'package:ecommerce_app/features/authentication/controllers/auth/reset_pass_controller.dart';
 import 'package:ecommerce_app/features/authentication/controllers/auth/signup_controller.dart';
 import 'package:ecommerce_app/features/authentication/screens/onboarding/onboarding.dart';
+import 'package:ecommerce_app/features/shop/controllers/account_privact_contoller.dart';
+import 'package:ecommerce_app/features/shop/controllers/addresses_controller.dart';
+import 'package:ecommerce_app/features/shop/controllers/bank_account_controller.dart';
+import 'package:ecommerce_app/features/shop/controllers/cart_controller.dart';
+import 'package:ecommerce_app/features/shop/controllers/coupons_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/home_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/navigation_controller.dart';
+import 'package:ecommerce_app/features/shop/controllers/notifications_controller.dart';
+import 'package:ecommerce_app/features/shop/controllers/orders_controller.dart';
+
 import 'package:ecommerce_app/features/shop/controllers/product_detail_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/profile_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/store_controller.dart';
@@ -46,6 +54,22 @@ class AppBindings extends Bindings {
     Get.lazyPut<WishlistController>(() => WishlistController(), fenix: true);
 
     Get.lazyPut<ProfileController>(() => ProfileController(), fenix: true);
+    Get.lazyPut<AddressesController>(() => AddressesController(), fenix: true);
+    Get.lazyPut<OrdersController>(() => OrdersController(), fenix: true);
+    Get.lazyPut<CartController>(() => CartController(), fenix: true);
+    Get.lazyPut<BankAccountController>(
+      () => BankAccountController(),
+      fenix: true,
+    );
+    Get.lazyPut<CouponsController>(() => CouponsController(), fenix: true);
+    Get.lazyPut<NotificationsController>(
+      () => NotificationsController(),
+      fenix: true,
+    );
+    Get.lazyPut<AccountPrivacyController>(
+      () => AccountPrivacyController(),
+      fenix: true,
+    );
   }
 }
 

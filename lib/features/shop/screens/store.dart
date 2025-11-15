@@ -16,7 +16,7 @@ class StoreScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(StoreController());
+    final controller = Get.find<StoreController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(

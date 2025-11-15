@@ -1,3 +1,11 @@
+import 'package:ecommerce_app/features/shop/screens/account_privacy.dart';
+import 'package:ecommerce_app/features/shop/screens/addresses.dart';
+import 'package:ecommerce_app/features/shop/screens/bank_account.dart';
+import 'package:ecommerce_app/features/shop/screens/cart.dart';
+import 'package:ecommerce_app/features/shop/screens/coupouns.dart';
+import 'package:ecommerce_app/features/shop/screens/notifications.dart';
+import 'package:ecommerce_app/features/shop/screens/orders.dart';
+import 'package:ecommerce_app/features/shop/screens/profile_edit.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -6,7 +14,7 @@ class ProfileController extends GetxController {
 
   // User info
   final userName = 'Nasir Bhutta'.obs;
-  final userEmail = 'support@NasirBhutta.com'.obs;
+  final userEmail = 'support@nasirbhutta.com'.obs;
   final userImage = ''.obs;
 
   // App settings observables
@@ -126,13 +134,29 @@ class ProfileController extends GetxController {
 
   // Navigate to menu item
   void navigateToMenuItem(String route, String title) {
-    Get.snackbar(
-      title,
-      'Opening $title...',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-    );
-    // In production: Get.toNamed(route);
+    switch (route) {
+      case '/addresses':
+        Get.to(() => const AddressesScreen());
+        break;
+      case '/cart':
+        Get.to(() => const CartScreen());
+        break;
+      case '/orders':
+        Get.to(() => const OrdersScreen());
+        break;
+      case '/bank-account':
+        Get.to(() => const BankAccountScreen());
+        break;
+      case '/coupons':
+        Get.to(() => const CouponsScreen());
+        break;
+      case '/notifications':
+        Get.to(() => const NotificationsScreen());
+        break;
+      case '/privacy':
+        Get.to(() => const AccountPrivacyScreen());
+        break;
+    }
   }
 
   // Logout
@@ -163,13 +187,10 @@ class ProfileController extends GetxController {
 
   // Edit profile
   void editProfile() {
-    Get.snackbar(
-      'Edit Profile',
-      'Opening profile editor...',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-    );
-    // In production: Navigate to edit profile screen
+    // Navigate to profile edit screen
+    Get.to(() => const ProfileEditScreen(), transition: Transition.rightToLeft);
+    // Or if you're not using named routes:
+    // Get.to(() => const ProfileEditScreen());
   }
 
   // Get switch value
