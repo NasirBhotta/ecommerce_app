@@ -5,8 +5,8 @@ class ProfileController extends GetxController {
   static ProfileController get instance => Get.find();
 
   // User info
-  final userName = 'Coding with T'.obs;
-  final userEmail = 'support@codingwitht.com'.obs;
+  final userName = 'Nasir Bhutta'.obs;
+  final userEmail = 'support@NasirBhutta.com'.obs;
   final userImage = ''.obs;
 
   // App settings observables

@@ -6,6 +6,7 @@ import 'package:ecommerce_app/features/authentication/screens/onboarding/onboard
 import 'package:ecommerce_app/features/shop/controllers/home_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/navigation_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/product_detail_controller.dart';
+import 'package:ecommerce_app/features/shop/controllers/profile_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/store_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/whishlist_controller.dart';
 import 'package:ecommerce_app/util/theme/theme.dart';
@@ -43,6 +44,8 @@ class AppBindings extends Bindings {
 
     Get.lazyPut<StoreController>(() => StoreController(), fenix: true);
     Get.lazyPut<WishlistController>(() => WishlistController(), fenix: true);
+
+    Get.lazyPut<ProfileController>(() => ProfileController(), fenix: true);
   }
 }
 
