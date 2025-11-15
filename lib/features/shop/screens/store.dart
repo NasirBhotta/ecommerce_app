@@ -73,7 +73,7 @@ class StoreScreen extends StatelessWidget {
               pinned: true,
               floating: true,
               backgroundColor: isDark ? BColors.black : BColors.white,
-              expandedHeight: BSizes.screenHeight * 0.42,
+              expandedHeight: BSizes.screenHeight * 0.5,
               flexibleSpace: FlexibleSpaceBar(
                 background: Padding(
                   padding: const EdgeInsets.only(

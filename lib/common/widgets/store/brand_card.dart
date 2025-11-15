@@ -43,8 +43,8 @@ class BBrandCard extends StatelessWidget {
           children: [
             // Brand Logo
             Container(
-              width: 50,
-              height: 50,
+              width: 35,
+              height: 35,
               decoration: BoxDecoration(
                 color:
                     isDark
@@ -56,7 +56,7 @@ class BBrandCard extends StatelessWidget {
                 child: Icon(
                   Icons.business,
                   color: isDark ? BColors.white : BColors.black,
-                  size: 24,
+                  size: 18,
                 ),
               ),
             ),
@@ -89,6 +89,7 @@ class BBrandCard extends StatelessWidget {
                   Text(
                     '$productCount products',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontSize: 10,
                       color:
                           isDark
                               ? BColors.white.withOpacity(0.6)
