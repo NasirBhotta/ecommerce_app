@@ -12,16 +12,19 @@ import 'package:ecommerce_app/features/shop/controllers/home_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/navigation_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/notifications_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/orders_controller.dart';
-
 import 'package:ecommerce_app/features/shop/controllers/product_detail_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/profile_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/store_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/whishlist_controller.dart';
+import 'package:ecommerce_app/firebase_options.dart';
 import 'package:ecommerce_app/util/theme/theme.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const EcommrceApp());
 }
 
