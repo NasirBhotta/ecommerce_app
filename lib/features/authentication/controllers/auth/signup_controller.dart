@@ -1,7 +1,11 @@
+import 'package:ecommerce_app/data/repositories/auth_repo.dart';
+import 'package:ecommerce_app/features/authentication/screens/authscreens/email_verification.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class SignUpController extends GetxController {
+  static SignUpController get instance => Get.find();
+
   // Text Controllers
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
@@ -17,6 +21,9 @@ class SignUpController extends GetxController {
 
   // Form Key
   final formKey = GlobalKey<FormState>();
+
+  // Authentication Repository
+  final authRepo = AuthenticationRepository.instance;
 
   @override
   void onClose() {
@@ -44,6 +51,9 @@ class SignUpController extends GetxController {
     if (value == null || value.isEmpty) {
       return 'First name is required';
     }
+    if (value.length < 2) {
+      return 'First name must be at least 2 characters';
+    }
     return null;
   }
 
@@ -51,6 +61,9 @@ class SignUpController extends GetxController {
   String? validateLastName(String? value) {
     if (value == null || value.isEmpty) {
       return 'Last name is required';
+    }
+    if (value.length < 2) {
+      return 'Last name must be at least 2 characters';
     }
     return null;
   }
@@ -62,6 +75,10 @@ class SignUpController extends GetxController {
     }
     if (value.length < 3) {
       return 'Username must be at least 3 characters';
+    }
+    // Check if username contains only alphanumeric and underscore
+    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
+      return 'Username can only contain letters, numbers, and underscores';
     }
     return null;
   }
@@ -83,8 +100,10 @@ class SignUpController extends GetxController {
     if (value == null || value.isEmpty) {
       return 'Phone number is required';
     }
-    if (value.length < 10) {
-      return 'Enter a valid phone number';
+    // Remove any spaces, dashes, or parentheses
+    final cleanedValue = value.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    if (cleanedValue.length < 10) {
+      return 'Enter a valid phone number (at least 10 digits)';
     }
     return null;
   }
@@ -94,52 +113,89 @@ class SignUpController extends GetxController {
     if (value == null || value.isEmpty) {
       return 'Password is required';
     }
-    if (value.length < 6) {
-      return 'Password must be at least 6 characters';
+    if (value.length < 8) {
+      return 'Password must be at least 8 characters';
+    }
+    // Check for at least one uppercase letter
+    if (!RegExp(r'[A-Z]').hasMatch(value)) {
+      return 'Password must contain at least one uppercase letter';
+    }
+    // Check for at least one lowercase letter
+    if (!RegExp(r'[a-z]').hasMatch(value)) {
+      return 'Password must contain at least one lowercase letter';
+    }
+    // Check for at least one number
+    if (!RegExp(r'[0-9]').hasMatch(value)) {
+      return 'Password must contain at least one number';
     }
     return null;
   }
 
-  // Sign Up
+  // Sign Up with Email & Password
   Future<void> signUp() async {
-    if (!formKey.currentState!.validate()) {
-      return;
-    }
-
-    if (!agreeToTerms.value) {
-      Get.snackbar(
-        'Terms Required',
-        'Please agree to the Privacy Policy and Terms of Use',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
-      return;
-    }
-
     try {
+      // Validate form
+      if (!formKey.currentState!.validate()) {
+        return;
+      }
+
+      // Check terms agreement
+      if (!agreeToTerms.value) {
+        Get.snackbar(
+          'Terms Required',
+          'Please agree to the Privacy Policy and Terms of Use',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+        return;
+      }
+
+      // Start loading
       isLoading.value = true;
 
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
+      // Register user with Firebase Authentication
+      final userCredential = await authRepo.registerWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
 
+      // Save user data to Firestore
+      await authRepo.saveUserRecord(
+        userCredential,
+        firstName: firstNameController.text.trim(),
+        lastName: lastNameController.text.trim(),
+        username: usernameController.text.trim(),
+        phone: phoneController.text.trim(),
+      );
+
+      // Send email verification
+      await authRepo.sendEmailVerification();
+
+      // Show success message
       Get.snackbar(
         'Success',
-        'Account created successfully!',
+        'Account created successfully! Please verify your email.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green,
         colorText: Colors.white,
+        duration: const Duration(seconds: 3),
       );
 
-      // Navigate to verification or home
-      // Get.offAll(() => VerificationScreen());
+      // Navigate to email verification screen
+      Get.off(
+        () => EmailVerificationScreen(email: emailController.text.trim()),
+      );
     } catch (e) {
+      // Show error message
       Get.snackbar(
-        'Error',
-        'Sign up failed. Please try again.',
+        'Sign Up Failed',
+        e.toString(),
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
+        duration: const Duration(seconds: 4),
       );
     } finally {
       isLoading.value = false;
@@ -150,22 +206,46 @@ class SignUpController extends GetxController {
   Future<void> signUpWithGoogle() async {
     try {
       isLoading.value = true;
-      await Future.delayed(const Duration(seconds: 1));
 
-      Get.snackbar(
-        'Success',
-        'Google Sign Up successful!',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
+      // Sign in with Google
+      final userCredential = await authRepo.signInWithGoogle();
+
+      if (userCredential != null) {
+        // Check if user data already exists
+        final userData = await authRepo.fetchUserRecord();
+
+        if (userData == null) {
+          // First time Google sign-in, save user data
+          final names = userCredential.user?.displayName?.split(' ') ?? [];
+          await authRepo.saveUserRecord(
+            userCredential,
+            firstName: names.isNotEmpty ? names[0] : '',
+            lastName: names.length > 1 ? names[1] : '',
+            username: userCredential.user?.email?.split('@')[0] ?? '',
+            phone: userCredential.user?.phoneNumber ?? '',
+          );
+        }
+
+        Get.snackbar(
+          'Success',
+          'Google Sign In successful!',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
+
+        // Navigate to home
+        authRepo.screenRedirect();
+      }
     } catch (e) {
       Get.snackbar(
-        'Error',
-        'Google Sign Up failed.',
+        'Google Sign In Failed',
+        e.toString(),
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
+        duration: const Duration(seconds: 3),
       );
     } finally {
       isLoading.value = false;
@@ -176,22 +256,30 @@ class SignUpController extends GetxController {
   Future<void> signUpWithFacebook() async {
     try {
       isLoading.value = true;
-      await Future.delayed(const Duration(seconds: 1));
 
       Get.snackbar(
-        'Success',
-        'Facebook Sign Up successful!',
+        'Coming Soon',
+        'Facebook sign-in will be available soon',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.blue,
         colorText: Colors.white,
+        duration: const Duration(seconds: 2),
       );
+
+      // TODO: Implement Facebook sign-in
+      // final userCredential = await authRepo.signInWithFacebook();
+      // if (userCredential != null) {
+      //   // Save user data if first time
+      //   authRepo.screenRedirect();
+      // }
     } catch (e) {
       Get.snackbar(
-        'Error',
-        'Facebook Sign Up failed.',
+        'Facebook Sign In Failed',
+        e.toString(),
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
+        duration: const Duration(seconds: 3),
       );
     } finally {
       isLoading.value = false;

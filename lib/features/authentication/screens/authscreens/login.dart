@@ -88,7 +88,7 @@ class LoginScreen extends StatelessWidget {
                 // Sign In Button
                 Obx(
                   () => BFullWidthButton(
-                    onPressed: controller.signIn,
+                    onPressed: controller.login,
                     text: 'Sign In',
                     isLoading: controller.isLoading.value,
                   ),
@@ -111,8 +111,8 @@ class LoginScreen extends StatelessWidget {
 
                 // Social Login
                 BSocialLoginRow(
-                  onGoogleTap: controller.signInWithGoogle,
-                  onFacebookTap: controller.signInWithFacebook,
+                  onGoogleTap: controller.loginWithGoogle,
+                  onFacebookTap: controller.loginWithFacebook,
                 ),
 
                 const SizedBox(height: BSizes.spaceBetweenSections),

@@ -3,6 +3,7 @@ import 'package:ecommerce_app/util/constants/BText.dart';
 import 'package:ecommerce_app/util/constants/Bimages.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:gif/gif.dart';
 
 class OnboardingController extends GetxController
@@ -69,9 +70,12 @@ class OnboardingController extends GetxController
   void nextPage() {
     if (currentIndex.value == images.length - 1) {
       // Smooth transition with fade
+
+      final deviceStorage = GetStorage();
+      deviceStorage.write("isFirstTime", false);
       Get.offAll(
         () => const LoginScreen(),
-        transition: Transition.fadeIn,
+        transition: Transition.rightToLeft,
 
         duration: const Duration(milliseconds: 250),
       );

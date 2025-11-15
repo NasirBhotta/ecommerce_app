@@ -1,3 +1,4 @@
+import 'package:ecommerce_app/data/repositories/auth_repo.dart';
 import 'package:ecommerce_app/features/authentication/controllers/auth/forgot_pass_controller.dart';
 import 'package:ecommerce_app/features/authentication/controllers/auth/login_controller.dart';
 import 'package:ecommerce_app/features/authentication/controllers/auth/reset_pass_controller.dart';
@@ -17,14 +18,24 @@ import 'package:ecommerce_app/features/shop/controllers/profile_controller.dart'
 import 'package:ecommerce_app/features/shop/controllers/store_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/whishlist_controller.dart';
 import 'package:ecommerce_app/firebase_options.dart';
+import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
 import 'package:ecommerce_app/util/theme/theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+
+  await GetStorage.init();
+
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  ).then((FirebaseApp value) => Get.put(AuthenticationRepository()));
   runApp(const EcommrceApp());
 }
 
@@ -90,7 +101,10 @@ class EcommrceApp extends StatelessWidget {
       defaultTransition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 300),
 
-      home: const OnboardingScreen(),
+      home: const Scaffold(
+        backgroundColor: BColors.primary,
+        body: Center(child: CircularProgressIndicator(color: BColors.white)),
+      ),
       debugShowCheckedModeBanner: false,
     );
   }
