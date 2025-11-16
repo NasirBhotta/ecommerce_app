@@ -1,7 +1,7 @@
 import 'package:ecommerce_app/data/repositories/auth_repo.dart';
+import 'package:ecommerce_app/data/repositories/user_repo.dart';
 import 'package:ecommerce_app/features/authentication/screens/authscreens/forgot_pass.dart';
 import 'package:ecommerce_app/features/authentication/screens/authscreens/signup.dart';
-import 'package:ecommerce_app/features/shop/screens/navigation_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -21,8 +21,9 @@ class LoginController extends GetxController {
   // Form Key
   final formKey = GlobalKey<FormState>();
 
-  // Authentication Repository
+  // Repositories
   final authRepo = AuthenticationRepository.instance;
+  final userRepo = UserRepository.instance;
   final localStorage = GetStorage();
 
   @override
@@ -101,27 +102,33 @@ class LoginController extends GetxController {
     return null;
   }
 
-  // Login with Email & Password
+  /* =====================================================
+     LOGIN WITH EMAIL & PASSWORD
+     Uses BOTH AuthRepository AND UserRepository
+  ===================================================== */
+
   Future<void> login() async {
     try {
-      // Validate form
+      // 1. Validate form
       if (!formKey.currentState!.validate()) {
         return;
       }
 
-      // Start loading
+      // 2. Start loading
       isLoading.value = true;
 
-      // Save credentials if remember me is checked
+      // 3. Save credentials if remember me is checked
       _saveCredentials();
 
-      // Login user with Firebase Authentication
+      // 4. Login user with Firebase Authentication
+      // Uses: AuthRepository
       await authRepo.loginWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
 
-      // Check if email is verified
+      // 5. Check if email is verified
+      // Uses: AuthRepository
       final isVerified = await authRepo.isEmailVerified();
 
       if (!isVerified) {
@@ -137,7 +144,25 @@ class LoginController extends GetxController {
         return;
       }
 
-      // Show success message
+      // 6. Optional: Fetch user data to verify it exists
+      // Uses: UserRepository
+      try {
+        await userRepo.fetchUserDetails();
+      } catch (e) {
+        // User data doesn't exist in Firestore (shouldn't happen)
+        // But we can create it now
+        print('Warning: User data not found, creating now...');
+        await userRepo.saveUserRecord(
+          uid: authRepo.userId,
+          email: emailController.text.trim(),
+          firstName: '',
+          lastName: '',
+          username: emailController.text.split('@')[0],
+          phoneNumber: '',
+        );
+      }
+
+      // 7. Show success message
       Get.snackbar(
         'Success',
         'Welcome back!',
@@ -147,12 +172,8 @@ class LoginController extends GetxController {
         duration: const Duration(seconds: 2),
       );
 
-      // Navigate to home
-      Get.offAll(
-        () => const NavigationMenu(),
-        transition: Transition.rightToLeft,
-        duration: const Duration(milliseconds: 250),
-      );
+      // 8. Navigate to home
+      authRepo.screenRedirect();
     } catch (e) {
       // Show error message
       Get.snackbar(
@@ -168,27 +189,41 @@ class LoginController extends GetxController {
     }
   }
 
-  // Login with Google
+  /* =====================================================
+     LOGIN WITH GOOGLE
+     Uses BOTH AuthRepository AND UserRepository
+  ===================================================== */
+
   Future<void> loginWithGoogle() async {
     try {
       isLoading.value = true;
 
-      // Sign in with Google
+      // 1. Sign in with Google
+      // Uses: AuthRepository
       final userCredential = await authRepo.signInWithGoogle();
 
       if (userCredential != null) {
-        // Check if user data already exists
-        final userData = await authRepo.fetchUserRecord();
-
-        if (userData == null) {
-          // First time Google sign-in, save user data
+        // 2. Check if user data already exists in Firestore
+        // Uses: UserRepository
+        try {
+          await userRepo.fetchUserDetails();
+          // User data exists, just navigate
+        } catch (e) {
+          // User data doesn't exist, create it
+          // This is first time Google sign-in
           final names = userCredential.user?.displayName?.split(' ') ?? [];
-          await authRepo.saveUserRecord(
-            userCredential,
-            firstName: names.isNotEmpty ? names[0] : '',
-            lastName: names.length > 1 ? names[1] : '',
+          final firstName = names.isNotEmpty ? names[0] : '';
+          final lastName = names.length > 1 ? names.sublist(1).join(' ') : '';
+
+          // Uses: UserRepository
+          await userRepo.saveUserRecord(
+            uid: userCredential.user!.uid,
+            email: userCredential.user!.email ?? '',
+            firstName: firstName,
+            lastName: lastName,
             username: userCredential.user?.email?.split('@')[0] ?? '',
-            phone: userCredential.user?.phoneNumber ?? '',
+            phoneNumber: userCredential.user?.phoneNumber ?? '',
+            profilePicture: userCredential.user?.photoURL,
           );
         }
 
@@ -231,8 +266,6 @@ class LoginController extends GetxController {
         colorText: Colors.white,
         duration: const Duration(seconds: 2),
       );
-
-      // TODO: Implement Facebook login
     } catch (e) {
       Get.snackbar(
         'Facebook Login Failed',
@@ -247,7 +280,6 @@ class LoginController extends GetxController {
     }
   }
 
-  // Forgot Password
   void forgotPassword() {
     Get.to(
       () => const ForgotPasswordScreen(),
@@ -265,3 +297,5 @@ class LoginController extends GetxController {
     );
   }
 }
+
+// Forgot Password

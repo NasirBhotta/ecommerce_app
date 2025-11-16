@@ -1,4 +1,5 @@
 import 'package:ecommerce_app/data/repositories/auth_repo.dart';
+import 'package:ecommerce_app/data/repositories/user_repo.dart';
 import 'package:ecommerce_app/features/authentication/screens/authscreens/email_verification.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -22,8 +23,9 @@ class SignUpController extends GetxController {
   // Form Key
   final formKey = GlobalKey<FormState>();
 
-  // Authentication Repository
+  // Repositories
   final authRepo = AuthenticationRepository.instance;
+  final userRepo = UserRepository.instance;
 
   @override
   void onClose() {
@@ -76,7 +78,6 @@ class SignUpController extends GetxController {
     if (value.length < 3) {
       return 'Username must be at least 3 characters';
     }
-    // Check if username contains only alphanumeric and underscore
     if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
       return 'Username can only contain letters, numbers, and underscores';
     }
@@ -100,7 +101,6 @@ class SignUpController extends GetxController {
     if (value == null || value.isEmpty) {
       return 'Phone number is required';
     }
-    // Remove any spaces, dashes, or parentheses
     final cleanedValue = value.replaceAll(RegExp(r'[\s\-\(\)]'), '');
     if (cleanedValue.length < 10) {
       return 'Enter a valid phone number (at least 10 digits)';
@@ -116,30 +116,31 @@ class SignUpController extends GetxController {
     if (value.length < 8) {
       return 'Password must be at least 8 characters';
     }
-    // Check for at least one uppercase letter
     if (!RegExp(r'[A-Z]').hasMatch(value)) {
       return 'Password must contain at least one uppercase letter';
     }
-    // Check for at least one lowercase letter
     if (!RegExp(r'[a-z]').hasMatch(value)) {
       return 'Password must contain at least one lowercase letter';
     }
-    // Check for at least one number
     if (!RegExp(r'[0-9]').hasMatch(value)) {
       return 'Password must contain at least one number';
     }
     return null;
   }
 
-  // Sign Up with Email & Password
+  /* =====================================================
+     SIGN UP WITH EMAIL & PASSWORD
+     Uses BOTH AuthRepository AND UserRepository
+  ===================================================== */
+
   Future<void> signUp() async {
     try {
-      // Validate form
+      // 1. Validate form
       if (!formKey.currentState!.validate()) {
         return;
       }
 
-      // Check terms agreement
+      // 2. Check terms agreement
       if (!agreeToTerms.value) {
         Get.snackbar(
           'Terms Required',
@@ -152,28 +153,32 @@ class SignUpController extends GetxController {
         return;
       }
 
-      // Start loading
+      // 3. Start loading
       isLoading.value = true;
 
-      // Register user with Firebase Authentication
+      // 4. Register user with Firebase Authentication
+      // Uses: AuthRepository
       final userCredential = await authRepo.registerWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
 
-      // Save user data to Firestore
-      await authRepo.saveUserRecord(
-        userCredential,
+      // 5. Save user data to Firestore
+      // Uses: UserRepository
+      await userRepo.saveUserRecord(
+        uid: userCredential.user!.uid,
+        email: emailController.text.trim(),
         firstName: firstNameController.text.trim(),
         lastName: lastNameController.text.trim(),
         username: usernameController.text.trim(),
-        phone: phoneController.text.trim(),
+        phoneNumber: phoneController.text.trim(),
       );
 
-      // Send email verification
+      // 6. Send email verification
+      // Uses: AuthRepository
       await authRepo.sendEmailVerification();
 
-      // Show success message
+      // 7. Show success message
       Get.snackbar(
         'Success',
         'Account created successfully! Please verify your email.',
@@ -183,7 +188,7 @@ class SignUpController extends GetxController {
         duration: const Duration(seconds: 3),
       );
 
-      // Navigate to email verification screen
+      // 8. Navigate to email verification screen
       Get.off(
         () => EmailVerificationScreen(email: emailController.text.trim()),
       );
@@ -202,27 +207,41 @@ class SignUpController extends GetxController {
     }
   }
 
-  // Sign Up with Google
+  /* =====================================================
+     SIGN UP WITH GOOGLE
+     Uses BOTH AuthRepository AND UserRepository
+  ===================================================== */
+
   Future<void> signUpWithGoogle() async {
     try {
       isLoading.value = true;
 
-      // Sign in with Google
+      // 1. Sign in with Google
+      // Uses: AuthRepository
       final userCredential = await authRepo.signInWithGoogle();
 
       if (userCredential != null) {
-        // Check if user data already exists
-        final userData = await authRepo.fetchUserRecord();
-
-        if (userData == null) {
-          // First time Google sign-in, save user data
+        // 2. Check if user data already exists in Firestore
+        // Uses: UserRepository
+        try {
+          await userRepo.fetchUserDetails();
+          // User data exists, just navigate
+        } catch (e) {
+          // User data doesn't exist, create it
+          // This is first time Google sign-in
           final names = userCredential.user?.displayName?.split(' ') ?? [];
-          await authRepo.saveUserRecord(
-            userCredential,
-            firstName: names.isNotEmpty ? names[0] : '',
-            lastName: names.length > 1 ? names[1] : '',
+          final firstName = names.isNotEmpty ? names[0] : '';
+          final lastName = names.length > 1 ? names.sublist(1).join(' ') : '';
+
+          // Uses: UserRepository
+          await userRepo.saveUserRecord(
+            uid: userCredential.user!.uid,
+            email: userCredential.user!.email ?? '',
+            firstName: firstName,
+            lastName: lastName,
             username: userCredential.user?.email?.split('@')[0] ?? '',
-            phone: userCredential.user?.phoneNumber ?? '',
+            phoneNumber: userCredential.user?.phoneNumber ?? '',
+            profilePicture: userCredential.user?.photoURL,
           );
         }
 
@@ -265,13 +284,6 @@ class SignUpController extends GetxController {
         colorText: Colors.white,
         duration: const Duration(seconds: 2),
       );
-
-      // TODO: Implement Facebook sign-in
-      // final userCredential = await authRepo.signInWithFacebook();
-      // if (userCredential != null) {
-      //   // Save user data if first time
-      //   authRepo.screenRedirect();
-      // }
     } catch (e) {
       Get.snackbar(
         'Facebook Sign In Failed',

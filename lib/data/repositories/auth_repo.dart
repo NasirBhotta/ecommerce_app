@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecommerce_app/features/authentication/screens/authscreens/login.dart';
 import 'package:ecommerce_app/features/authentication/screens/onboarding/onboarding.dart';
 import 'package:ecommerce_app/features/shop/screens/navigation_menu.dart';
@@ -9,16 +8,25 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+/// AuthenticationRepository
+/// Handles ONLY Firebase Authentication
+/// For user data operations, use UserRepository
 class AuthenticationRepository extends GetxController {
   static AuthenticationRepository get instance => Get.find();
 
   // Variables
   final deviceStorage = GetStorage();
   final _auth = FirebaseAuth.instance;
-  final _firestore = FirebaseFirestore.instance;
 
-  // Get authenticated user data
+  // Get authenticated user
   User? get authUser => _auth.currentUser;
+
+  // Get user ID
+  String get userId {
+    final user = _auth.currentUser;
+    if (user == null) throw 'No user logged in';
+    return user.uid;
+  }
 
   // Stream of authentication state changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -30,7 +38,7 @@ class AuthenticationRepository extends GetxController {
     screenRedirect();
   }
 
-  // Function to show relevant screen
+  /// Screen Redirect based on authentication state
   void screenRedirect() async {
     final user = _auth.currentUser;
 
@@ -48,7 +56,7 @@ class AuthenticationRepository extends GetxController {
 
   /* ----------------------- Email & Password Authentication ----------------------- */
 
-  /// [EmailAuthentication] - SignUp
+  /// Register with Email & Password
   Future<UserCredential> registerWithEmailAndPassword({
     required String email,
     required String password,
@@ -71,7 +79,7 @@ class AuthenticationRepository extends GetxController {
     }
   }
 
-  /// [EmailAuthentication] - Login
+  /// Login with Email & Password
   Future<UserCredential> loginWithEmailAndPassword({
     required String email,
     required String password,
@@ -94,7 +102,7 @@ class AuthenticationRepository extends GetxController {
     }
   }
 
-  /// [EmailVerification] - Send Email Verification
+  /// Send Email Verification
   Future<void> sendEmailVerification() async {
     try {
       await _auth.currentUser?.sendEmailVerification();
@@ -105,7 +113,7 @@ class AuthenticationRepository extends GetxController {
     }
   }
 
-  /// [EmailVerification] - Check if email is verified
+  /// Check if Email is Verified
   Future<bool> isEmailVerified() async {
     try {
       await _auth.currentUser?.reload();
@@ -115,7 +123,7 @@ class AuthenticationRepository extends GetxController {
     }
   }
 
-  /// [ReAuthentication] - ReAuthenticate User
+  /// Re-Authenticate User
   Future<void> reAuthenticateWithEmailAndPassword({
     required String email,
     required String password,
@@ -133,9 +141,9 @@ class AuthenticationRepository extends GetxController {
     }
   }
 
-  /* ----------------------- Federated Identity & Social Sign-In ----------------------- */
+  /* ----------------------- Social Authentication ----------------------- */
 
-  /// [GoogleAuthentication] - Google Sign In
+  /// Google Sign In
   Future<UserCredential?> signInWithGoogle() async {
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn(scopes: ['email']);
@@ -151,72 +159,18 @@ class AuthenticationRepository extends GetxController {
         accessToken: googleAuth.accessToken,
       );
 
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(
-        credential,
-      );
-
-      return userCredential;
+      return await _auth.signInWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      throw _handleFirebaseAuthException(e);
     } catch (e) {
       print("Google Sign-In Error: $e");
       return null;
     }
   }
 
-  /// [FacebookAuthentication] - Facebook Sign In (requires facebook_auth package)
-  // Future<UserCredential?> signInWithFacebook() async {
-  //   try {
-  //     final LoginResult result = await FacebookAuth.instance.login();
-  //
-  //     if (result.status == LoginStatus.success) {
-  //       final OAuthCredential credential =
-  //           FacebookAuthProvider.credential(result.accessToken!.token);
-  //       return await _auth.signInWithCredential(credential);
-  //     }
-  //     return null;
-  //   } on FirebaseAuthException catch (e) {
-  //     throw _handleFirebaseAuthException(e);
-  //   } catch (e) {
-  //     if (kDebugMode) print('Error during Facebook Sign In: $e');
-  //     return null;
-  //   }
-  // }
-
-  /* ----------------------- ./END Federated Identity & Social Sign-In ----------------------- */
-
-  /// [LogoutUser] - Valid for any authentication
-  Future<void> logout() async {
-    try {
-      await GoogleSignIn().signOut();
-      await _auth.signOut();
-      Get.offAll(() => const LoginScreen());
-    } on FirebaseAuthException catch (e) {
-      throw _handleFirebaseAuthException(e);
-    } catch (e) {
-      throw 'Something went wrong. Please try again.';
-    }
-  }
-
-  /// [DeleteUser] - Remove user Auth and Firestore Account
-  Future<void> deleteAccount() async {
-    try {
-      // Delete user data from Firestore
-      await _firestore.collection('users').doc(_auth.currentUser?.uid).delete();
-
-      // Delete user authentication
-      await _auth.currentUser?.delete();
-
-      // Navigate to login
-      Get.offAll(() => const LoginScreen());
-    } on FirebaseAuthException catch (e) {
-      throw _handleFirebaseAuthException(e);
-    } catch (e) {
-      throw 'Something went wrong. Please try again.';
-    }
-  }
-
   /* ----------------------- Password Management ----------------------- */
 
-  /// [ForgotPassword] - Send Password Reset Email
+  /// Send Password Reset Email
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
@@ -227,7 +181,7 @@ class AuthenticationRepository extends GetxController {
     }
   }
 
-  /// [ChangePassword] - Change user password
+  /// Change Password
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -252,89 +206,31 @@ class AuthenticationRepository extends GetxController {
     }
   }
 
-  /* ----------------------- User Management ----------------------- */
+  /* ----------------------- Logout & Delete ----------------------- */
 
-  /// Save user record in Firestore
-  Future<void> saveUserRecord(
-    UserCredential? userCredential, {
-    required String firstName,
-    required String lastName,
-    required String username,
-    required String phone,
-  }) async {
+  /// Logout User
+  Future<void> logout() async {
     try {
-      if (userCredential != null) {
-        // Save user data to Firestore
-        await _firestore.collection('users').doc(userCredential.user!.uid).set({
-          'uid': userCredential.user!.uid,
-          'email': userCredential.user!.email ?? '',
-          'firstName': firstName,
-          'lastName': lastName,
-          'fullName': '$firstName $lastName',
-          'username': username,
-          'phoneNumber': phone,
-          'profilePicture': '',
-          'createdAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-
-          // Additional fields
-          'emailVerified': userCredential.user!.emailVerified,
-          'isActive': true,
-          'role': 'user',
-
-          // Privacy settings
-          'privacySettings': {
-            'profileVisibility': 'Public',
-            'showOnlineStatus': true,
-            'showPurchaseHistory': false,
-          },
-
-          // Notification settings
-          'notificationSettings': {
-            'orderUpdates': true,
-            'promotionalOffers': true,
-            'pushNotifications': true,
-          },
-        });
-      }
-    } on FirebaseException catch (e) {
-      throw e.message ?? 'Firebase error occurred';
+      await GoogleSignIn().signOut();
+      await _auth.signOut();
+      Get.offAll(() => const LoginScreen());
+    } on FirebaseAuthException catch (e) {
+      throw _handleFirebaseAuthException(e);
     } catch (e) {
-      throw 'Something went wrong while saving user data.';
+      throw 'Something went wrong. Please try again.';
     }
   }
 
-  /// Update user data in Firestore
-  Future<void> updateUserRecord(Map<String, dynamic> data) async {
+  /// Delete User Authentication
+  /// WARNING: Call UserRepository.deleteUser() FIRST to delete user data!
+  Future<void> deleteUserAuth() async {
     try {
-      await _firestore.collection('users').doc(_auth.currentUser?.uid).update({
-        ...data,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-    } on FirebaseException catch (e) {
-      throw e.message ?? 'Firebase error occurred';
+      await _auth.currentUser?.delete();
+      Get.offAll(() => const LoginScreen());
+    } on FirebaseAuthException catch (e) {
+      throw _handleFirebaseAuthException(e);
     } catch (e) {
-      throw 'Something went wrong while updating user data.';
-    }
-  }
-
-  /// Fetch user data from Firestore
-  Future<Map<String, dynamic>?> fetchUserRecord() async {
-    try {
-      final doc =
-          await _firestore
-              .collection('users')
-              .doc(_auth.currentUser?.uid)
-              .get();
-
-      if (doc.exists) {
-        return doc.data();
-      }
-      return null;
-    } on FirebaseException catch (e) {
-      throw e.message ?? 'Firebase error occurred';
-    } catch (e) {
-      throw 'Something went wrong while fetching user data.';
+      throw 'Something went wrong. Please try again.';
     }
   }
 
