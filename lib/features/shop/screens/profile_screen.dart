@@ -15,7 +15,6 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<ProfileController>();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -101,8 +100,13 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: BSizes.spaceBetweenSections),
 
             // Logout Button
-            BLogoutButton(onPressed: controller.logout),
-
+            Obx(() {
+              return BLogoutButton(
+                onPressed:
+                    controller.isLoggingOut.value ? null : controller.logout,
+                isLoading: controller.isLoggingOut.value,
+              );
+            }),
             const SizedBox(height: BSizes.spaceBetweenSections),
           ],
         ),

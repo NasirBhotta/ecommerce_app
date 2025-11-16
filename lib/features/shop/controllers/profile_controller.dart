@@ -1,3 +1,4 @@
+import 'package:ecommerce_app/data/repositories/auth_repo.dart';
 import 'package:ecommerce_app/features/shop/screens/account_privacy.dart';
 import 'package:ecommerce_app/features/shop/screens/addresses.dart';
 import 'package:ecommerce_app/features/shop/screens/bank_account.dart';
@@ -11,11 +12,12 @@ import 'package:get/get.dart';
 
 class ProfileController extends GetxController {
   static ProfileController get instance => Get.find();
-
+  final AuthenticationRepository authrepo = AuthenticationRepository.instance;
   // User info
   final userName = 'Nasir Bhutta'.obs;
   final userEmail = 'support@nasirbhutta.com'.obs;
   final userImage = ''.obs;
+  final isLoggingOut = false.obs;
 
   // App settings observables
   final geolocationEnabled = true.obs;
@@ -168,15 +170,16 @@ class ProfileController extends GetxController {
         actions: [
           TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           TextButton(
-            onPressed: () {
-              Get.back();
-              Get.snackbar(
-                'Logged Out',
-                'You have been logged out successfully',
-                snackPosition: SnackPosition.BOTTOM,
-                duration: const Duration(seconds: 2),
-              );
-              // In production: Navigate to login screen
+            onPressed: () async {
+              Get.back(); // close dialog
+
+              isLoggingOut.value = true; // start loader
+
+              try {
+                await authrepo.logout();
+              } finally {
+                isLoggingOut.value = false; // stop loader
+              }
             },
             child: const Text('Logout', style: TextStyle(color: Colors.red)),
           ),

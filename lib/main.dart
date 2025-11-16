@@ -1,9 +1,9 @@
 import 'package:ecommerce_app/data/repositories/auth_repo.dart';
+import 'package:ecommerce_app/data/repositories/user_repo.dart';
 import 'package:ecommerce_app/features/authentication/controllers/auth/forgot_pass_controller.dart';
 import 'package:ecommerce_app/features/authentication/controllers/auth/login_controller.dart';
 import 'package:ecommerce_app/features/authentication/controllers/auth/reset_pass_controller.dart';
 import 'package:ecommerce_app/features/authentication/controllers/auth/signup_controller.dart';
-import 'package:ecommerce_app/features/authentication/screens/onboarding/onboarding.dart';
 import 'package:ecommerce_app/features/shop/controllers/account_privact_contoller.dart';
 import 'package:ecommerce_app/features/shop/controllers/addresses_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/bank_account_controller.dart';
@@ -35,7 +35,10 @@ void main() async {
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
-  ).then((FirebaseApp value) => Get.put(AuthenticationRepository()));
+  ).then((FirebaseApp value) {
+    Get.put(AuthenticationRepository());
+    Get.put(UserRepository());
+  });
   runApp(const EcommrceApp());
 }
 
