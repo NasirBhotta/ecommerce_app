@@ -11,7 +11,7 @@ class ProfileEditScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<ProfileEditController>();
+    final controller = Get.put(ProfileEditController());
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(

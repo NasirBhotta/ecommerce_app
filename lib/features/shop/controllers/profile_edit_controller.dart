@@ -62,12 +62,12 @@ class ProfileEditController extends GetxController {
           textCapitalization: TextCapitalization.words,
         ),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(Get.context!), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               if (nameController.text.trim().isNotEmpty) {
                 updateName(nameController.text.trim());
-                Get.back();
+                Navigator.pop(Get.context!);
               } else {
                 Get.snackbar(
                   'Error',
@@ -99,12 +99,12 @@ class ProfileEditController extends GetxController {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(Get.context!), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               if (usernameController.text.trim().isNotEmpty) {
                 updateUsername(usernameController.text.trim());
-                Get.back();
+                Navigator.pop(Get.context!);
               } else {
                 Get.snackbar(
                   'Error',
@@ -147,13 +147,13 @@ class ProfileEditController extends GetxController {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(Get.context!), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               if (emailController.text.trim().isNotEmpty &&
                   GetUtils.isEmail(emailController.text.trim())) {
                 updateEmail(emailController.text.trim());
-                Get.back();
+                Navigator.pop(Get.context!);
               } else {
                 Get.snackbar(
                   'Error',
@@ -196,12 +196,12 @@ class ProfileEditController extends GetxController {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(Get.context!), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               if (phoneController.text.trim().isNotEmpty) {
                 updatePhoneNumber(phoneController.text.trim());
-                Get.back();
+                Navigator.pop(Get.context!);
               } else {
                 Get.snackbar(
                   'Error',
@@ -233,14 +233,14 @@ class ProfileEditController extends GetxController {
                   onChanged: (value) {
                     if (value != null) {
                       updateGender(value);
-                      Get.back();
+                      Get.back(canPop: true);
                     }
                   },
                 );
               }).toList(),
         ),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(Get.context!), child: const Text('Cancel')),
         ],
       ),
     );
@@ -344,10 +344,10 @@ class ProfileEditController extends GetxController {
           'Are you sure you want to close your account? This action cannot be undone.',
         ),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(Get.context!), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
-              Get.back();
+              Navigator.pop(Get.context!);
               Get.snackbar(
                 'Account Closed',
                 'Your account has been scheduled for deletion',
@@ -385,7 +385,7 @@ class ProfileEditController extends GetxController {
               leading: const Icon(Icons.camera_alt),
               title: const Text('Take Photo'),
               onTap: () {
-                Get.back();
+                Navigator.pop(Get.context!);
                 Get.snackbar(
                   'Camera',
                   'Opening camera...',
@@ -397,7 +397,7 @@ class ProfileEditController extends GetxController {
               leading: const Icon(Icons.photo_library),
               title: const Text('Choose from Gallery'),
               onTap: () {
-                Get.back();
+                Navigator.pop(Get.context!);
                 Get.snackbar(
                   'Gallery',
                   'Opening gallery...',
@@ -414,7 +414,7 @@ class ProfileEditController extends GetxController {
                 ),
                 onTap: () {
                   profileImage.value = '';
-                  Get.back();
+                  Navigator.pop(Get.context!);
                   Get.snackbar(
                     'Success',
                     'Profile picture removed',

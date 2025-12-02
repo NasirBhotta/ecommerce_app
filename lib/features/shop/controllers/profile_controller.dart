@@ -1,4 +1,5 @@
 import 'package:ecommerce_app/data/repositories/auth_repo.dart';
+import 'package:ecommerce_app/data/repositories/user_repo.dart';
 import 'package:ecommerce_app/features/shop/screens/account_privacy.dart';
 import 'package:ecommerce_app/features/shop/screens/addresses.dart';
 import 'package:ecommerce_app/features/shop/screens/bank_account.dart';
@@ -12,9 +13,12 @@ import 'package:get/get.dart';
 
 class ProfileController extends GetxController {
   static ProfileController get instance => Get.find();
+
+  final UserRepository userRepo = UserRepository.instance;
   final AuthenticationRepository authrepo = AuthenticationRepository.instance;
+
   // User info
-  final userName = 'Nasir Bhutta'.obs;
+  final userName = 'Nasir Shahzad'.obs;
   final userEmail = 'support@nasirbhutta.com'.obs;
   final userImage = ''.obs;
   final isLoggingOut = false.obs;
@@ -23,6 +27,22 @@ class ProfileController extends GetxController {
   final geolocationEnabled = true.obs;
   final safeModeEnabled = false.obs;
   final hdImageQualityEnabled = false.obs;
+
+
+  @override void onInit() {
+    super.onInit();
+    bindUserStream();
+  }
+
+  void bindUserStream() {
+    userRepo.streamUserDetails().listen((data) {
+      if (data.isNotEmpty) {
+        userName.value = data['fullName'] ?? '';
+        userEmail.value = data['email'] ?? '';
+        userImage.value = data['profilePicture'] ?? '';
+      }
+    });
+  }
 
   // Account settings menu items
   final accountSettings = [

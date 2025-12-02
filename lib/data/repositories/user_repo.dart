@@ -300,4 +300,40 @@ class UserRepository extends GetxController {
       // Ignore if subcollection doesn't exist
     }
   }
+
+
+  Future<void> updateUserField(String fieldName, dynamic value) async {
+    try {
+      final userId = AuthenticationRepository.instance.userId;
+
+      if (userId.isEmpty) {
+        throw 'User not authenticated';
+      }
+
+      await _db.collection('Users').doc(userId).update({
+        fieldName: value,
+      });
+    } on FirebaseException catch (e) {
+      throw 'Firebase Error: ${e.message}';
+    } catch (e) {
+      throw 'Failed to update $fieldName: $e';
+    }
+  }
+
+  /// Update multiple user fields at once
+  Future<void> updateUserFields(Map<String, dynamic> data) async {
+    try {
+      final userId = AuthenticationRepository.instance.userId;
+
+      if (userId.isEmpty) {
+        throw 'User not authenticated';
+      }
+
+      await _db.collection('Users').doc(userId).update(data);
+    } on FirebaseException catch (e) {
+      throw 'Firebase Error: ${e.message}';
+    } catch (e) {
+      throw 'Failed to update user data: $e';
+    }
+  }
 }

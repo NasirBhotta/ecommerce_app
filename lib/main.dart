@@ -15,6 +15,7 @@ import 'package:ecommerce_app/features/shop/controllers/notifications_controller
 import 'package:ecommerce_app/features/shop/controllers/orders_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/product_detail_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/profile_controller.dart';
+import 'package:ecommerce_app/features/shop/controllers/profile_edit_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/store_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/whishlist_controller.dart';
 import 'package:ecommerce_app/firebase_options.dart';
@@ -71,6 +72,7 @@ class AppBindings extends Bindings {
     Get.lazyPut<WishlistController>(() => WishlistController(), fenix: true);
 
     Get.lazyPut<ProfileController>(() => ProfileController(), fenix: true);
+    Get.lazyPut<ProfileEditController>(() => ProfileEditController(), fenix: true);
     Get.lazyPut<AddressesController>(() => AddressesController(), fenix: true);
     Get.lazyPut<OrdersController>(() => OrdersController(), fenix: true);
     Get.lazyPut<CartController>(() => CartController(), fenix: true);
@@ -87,6 +89,8 @@ class AppBindings extends Bindings {
       () => AccountPrivacyController(),
       fenix: true,
     );
+
+
   }
 }
 
