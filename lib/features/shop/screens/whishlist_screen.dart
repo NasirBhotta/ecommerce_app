@@ -14,9 +14,6 @@ class WishlistScreen extends StatelessWidget {
     final controller = Get.find<WishlistController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Add sample data for demo (remove in production)
-    controller.addSampleData();
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: isDark ? BColors.black : BColors.white,
@@ -102,7 +99,7 @@ class WishlistScreen extends StatelessWidget {
                   const SizedBox(height: BSizes.spaceBetweenSections),
                   ElevatedButton(
                     onPressed: () {
-                      // Navigate to home or store
+                      // Navigate back to previous screen
                       Get.back();
                     },
                     child: const Text('Start Shopping'),
@@ -156,14 +153,8 @@ class WishlistScreen extends StatelessWidget {
                                   leading: const Icon(Iconsax.arrow_down),
                                   title: const Text('Newest First'),
                                   onTap: () {
-                                    // Sort implementation
+                                    // Sort implementation can be added to controller
                                     Get.back();
-                                    Get.snackbar(
-                                      'Sorted',
-                                      'Wishlist sorted by newest first',
-                                      snackPosition: SnackPosition.BOTTOM,
-                                      duration: const Duration(seconds: 1),
-                                    );
                                   },
                                 ),
                                 ListTile(
@@ -171,12 +162,6 @@ class WishlistScreen extends StatelessWidget {
                                   title: const Text('Oldest First'),
                                   onTap: () {
                                     Get.back();
-                                    Get.snackbar(
-                                      'Sorted',
-                                      'Wishlist sorted by oldest first',
-                                      snackPosition: SnackPosition.BOTTOM,
-                                      duration: const Duration(seconds: 1),
-                                    );
                                   },
                                 ),
                               ],
@@ -210,20 +195,9 @@ class WishlistScreen extends StatelessWidget {
                       productName: product['name'],
                       price: product['price'],
                       discount: product['discount'],
+                      imageUrl: product['image'],
                       onTap: () {
-                        Get.snackbar(
-                          'Product',
-                          'Opening ${product['name']}...',
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: BColors.primary.withValues(
-                            alpha: 0.8,
-                          ),
-                          colorText: BColors.white,
-                          duration: const Duration(seconds: 2),
-                        );
-                      },
-                      onFavoriteTap: () {
-                        controller.removeFromWishlist(product['name']);
+                        // Navigate to product detail
                       },
                     );
                   },

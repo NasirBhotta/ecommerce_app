@@ -284,18 +284,7 @@ class HomeScreen extends StatelessWidget {
                                 duration: const Duration(seconds: 2),
                               );
                             },
-                            onFavoriteTap: () {
-                              Get.snackbar(
-                                'Wishlist',
-                                '${product['name']} added to wishlist',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: BColors.secondary.withOpacity(
-                                  0.8,
-                                ),
-                                colorText: BColors.white,
-                                duration: const Duration(seconds: 2),
-                              );
-                            },
+                            // onFavoriteTap removed to use default internal logic
                           );
                         },
                       ),
@@ -477,11 +466,7 @@ class HomeScreen extends StatelessWidget {
                               duration: const Duration(seconds: 2),
                             );
                           },
-                          onFavoriteTap: () {
-                            debugPrint(
-                              "the product is tapped  ${product['name']!}",
-                            );
-                          },
+                          // onFavoriteTap removed to use default internal logic
                         );
                       },
                     ),

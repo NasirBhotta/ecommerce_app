@@ -1,8 +1,10 @@
 import 'package:ecommerce_app/features/shop/controllers/cart_controller.dart';
+import 'package:ecommerce_app/features/shop/controllers/whishlist_controller.dart';
 import 'package:ecommerce_app/util/constants/sized.dart';
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iconsax/iconsax.dart';
 
 class BProductCardVertical extends StatelessWidget {
   const BProductCardVertical({
@@ -26,7 +28,8 @@ class BProductCardVertical extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<CartController>();
+    final cartController = Get.find<CartController>();
+    final wishlistController = Get.find<WishlistController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
@@ -95,19 +98,36 @@ class BProductCardVertical extends StatelessWidget {
                   Positioned(
                     top: 8,
                     right: 8,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color:
-                            isDark
-                                ? BColors.black.withValues(alpha: 0.7)
-                                : BColors.white.withValues(alpha: 0.7),
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.favorite_border),
-                        iconSize: 20,
-                        color: isDark ? BColors.white : BColors.black,
-                        onPressed: onFavoriteTap,
+                    child: Obx(
+                      () => Container(
+                        decoration: BoxDecoration(
+                          color:
+                              isDark
+                                  ? BColors.black.withValues(alpha: 0.7)
+                                  : BColors.white.withValues(alpha: 0.7),
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            wishlistController.isInWishlist(productId)
+                                ? Iconsax.heart5
+                                : Iconsax.heart,
+                            color:
+                                wishlistController.isInWishlist(productId)
+                                    ? Colors.red
+                                    : (isDark ? BColors.white : BColors.black),
+                          ),
+                          iconSize: 20,
+                          onPressed:
+                              onFavoriteTap ??
+                              () => wishlistController.toggleWishlist({
+                                'id': productId,
+                                'name': productName,
+                                'price': price,
+                                'discount': discount,
+                                'image': imageUrl,
+                              }),
+                        ),
                       ),
                     ),
                   ),
@@ -160,7 +180,7 @@ class BProductCardVertical extends StatelessWidget {
                       ),
                       // Quantity Selector
                       Obx(() {
-                        final quantity = controller.getProductQuantity(
+                        final quantity = cartController.getProductQuantity(
                           productId,
                         );
                         return Container(
@@ -181,9 +201,8 @@ class BProductCardVertical extends StatelessWidget {
                                     children: [
                                       InkWell(
                                         onTap:
-                                            () => controller.decreaseQuantity(
-                                              productId,
-                                            ),
+                                            () => cartController
+                                                .decreaseQuantity(productId),
                                         child: SizedBox(
                                           width: 32,
                                           height: 32,
@@ -210,9 +229,8 @@ class BProductCardVertical extends StatelessWidget {
                                       ),
                                       InkWell(
                                         onTap:
-                                            () => controller.increaseQuantity(
-                                              productId,
-                                            ),
+                                            () => cartController
+                                                .increaseQuantity(productId),
                                         child: SizedBox(
                                           width: 32,
                                           height: 32,
@@ -228,7 +246,7 @@ class BProductCardVertical extends StatelessWidget {
                                   : InkWell(
                                     // Add to Cart
                                     onTap: () {
-                                      controller.addToCart({
+                                      cartController.addToCart({
                                         'id': productId,
                                         'name': productName,
                                         'price': price,

@@ -8,17 +8,19 @@ class WishlistController extends GetxController {
       <Map<String, dynamic>>[].obs;
 
   // Check if product is in wishlist
-  bool isInWishlist(String productName) {
-    return wishlistItems.any((item) => item['name'] == productName);
+  bool isInWishlist(String productId) {
+    return wishlistItems.any((item) => item['id'] == productId);
   }
 
   // Add product to wishlist
   void addToWishlist(Map<String, dynamic> product) {
-    if (!isInWishlist(product['name'])) {
+    if (!isInWishlist(product['id'])) {
       wishlistItems.add({
+        'id': product['id'],
         'name': product['name'],
         'price': product['price'],
         'discount': product['discount'],
+        'image': product['image'],
         'category': product['category'] ?? 'General',
         'addedAt': DateTime.now(),
       });
@@ -33,12 +35,12 @@ class WishlistController extends GetxController {
   }
 
   // Remove product from wishlist
-  void removeFromWishlist(String productName) {
-    wishlistItems.removeWhere((item) => item['name'] == productName);
+  void removeFromWishlist(String productId) {
+    wishlistItems.removeWhere((item) => item['id'] == productId);
 
     Get.snackbar(
       'Removed from Wishlist',
-      '$productName has been removed from your wishlist',
+      'Item has been removed from your wishlist',
       snackPosition: SnackPosition.BOTTOM,
       duration: const Duration(seconds: 2),
     );
@@ -46,8 +48,8 @@ class WishlistController extends GetxController {
 
   // Toggle wishlist status
   void toggleWishlist(Map<String, dynamic> product) {
-    if (isInWishlist(product['name'])) {
-      removeFromWishlist(product['name']);
+    if (isInWishlist(product['id'])) {
+      removeFromWishlist(product['id']);
     } else {
       addToWishlist(product);
     }
@@ -80,34 +82,23 @@ class WishlistController extends GetxController {
     return sorted;
   }
 
-  // Sort wishlist by date added (oldest first)
-  List<Map<String, dynamic>> get sortedByOldest {
-    final sorted = List<Map<String, dynamic>>.from(wishlistItems);
-    sorted.sort((a, b) => a['addedAt'].compareTo(b['addedAt']));
-    return sorted;
-  }
-
   // Add some sample data for demo
   void addSampleData() {
     if (wishlistItems.isEmpty) {
       final sampleProducts = [
         {
+          'id': '1',
           'name': 'Nike Air Jordan Shoes',
           'price': '\$299.99',
           'discount': '70%',
           'category': 'Sports',
         },
         {
+          'id': '2',
           'name': 'Blue Cotton T-Shirt',
           'price': '\$49.99',
           'discount': '40%',
           'category': 'Clothes',
-        },
-        {
-          'name': 'Adidas Running Sneakers',
-          'price': '\$189.99',
-          'discount': '50%',
-          'category': 'Sports',
         },
       ];
 
