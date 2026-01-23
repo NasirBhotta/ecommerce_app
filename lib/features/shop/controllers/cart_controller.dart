@@ -1,3 +1,4 @@
+import 'package:ecommerce_app/features/shop/models/cart_item.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -9,9 +10,13 @@ class CartController extends GetxController {
 
   // Loading state
   final isLoading = false.obs;
+  final RxList<CartItem> cartItemsCount = <CartItem>[].obs;
 
-  // Get cart count
-  int get cartCount => cartItems.length;
+  // Reactive cart count
+  RxInt get cartCount => cartItemsCount.fold<RxInt>(0.obs, (prev, item) {
+    prev.value += item.quantity.value;
+    return prev;
+  });
 
   // Get quantity of a specific product
   int getProductQuantity(String productId) {
@@ -105,12 +110,14 @@ class CartController extends GetxController {
   void updateQuantity(String productId, int quantity) {
     if (quantity <= 0) {
       removeFromCart(productId);
+      cartItems.refresh();
       return;
     }
 
     final index = cartItems.indexWhere((item) => item['id'] == productId);
     if (index != -1) {
       cartItems[index]['quantity'] = quantity;
+      cartItems.refresh();
     }
   }
 
@@ -119,6 +126,7 @@ class CartController extends GetxController {
     final index = cartItems.indexWhere((item) => item['id'] == productId);
     if (index != -1) {
       cartItems[index]['quantity']++;
+      cartItems.refresh();
     }
   }
 
@@ -128,8 +136,10 @@ class CartController extends GetxController {
     if (index != -1) {
       if (cartItems[index]['quantity'] > 1) {
         cartItems[index]['quantity']--;
+        cartItems.refresh();
       } else {
         removeFromCart(productId);
+        cartItems.refresh();
       }
     }
   }

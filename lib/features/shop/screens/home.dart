@@ -106,7 +106,13 @@ class HomeScreen extends StatelessWidget {
                                       right: 0,
                                       child: Obx(
                                         () =>
-                                            cartController.cartCount > 0
+                                            cartController.cartItems.fold(
+                                                      0,
+                                                      (sum, item) =>
+                                                          sum + item['quantity']
+                                                              as int,
+                                                    ) >
+                                                    0
                                                 ? Container(
                                                   width: 18,
                                                   height: 18,
@@ -119,7 +125,7 @@ class HomeScreen extends StatelessWidget {
                                                   ),
                                                   child: Center(
                                                     child: Text(
-                                                      '${cartController.cartCount}',
+                                                      '${cartController.cartItems.fold(0, (sum, item) => sum + item['quantity'] as int)}',
                                                       style: Theme.of(context)
                                                           .textTheme
                                                           .labelSmall!

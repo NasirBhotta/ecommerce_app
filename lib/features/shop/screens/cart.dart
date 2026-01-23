@@ -27,7 +27,7 @@ class CartScreen extends StatelessWidget {
         ),
         title: Obx(
           () => Text(
-            'Cart (${controller.cartCount})',
+            'Cart (${controller.cartItems.fold(0, (sum, item) => sum + item['quantity'] as int)})',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
         ),
