@@ -7,7 +7,9 @@ import 'package:ecommerce_app/common/widgets/home/rounded_image.dart';
 import 'package:ecommerce_app/common/widgets/home/search_container.dart';
 import 'package:ecommerce_app/common/widgets/home/section_heading.dart';
 import 'package:ecommerce_app/common/widgets/home/vertical_image_text.dart';
+import 'package:ecommerce_app/features/shop/controllers/cart_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/home_controller.dart';
+import 'package:ecommerce_app/features/shop/screens/cart.dart';
 
 import 'package:ecommerce_app/util/constants/sized.dart';
 
@@ -22,6 +24,8 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<HomeController>();
+    // Ensure CartController is initialized
+    final cartController = Get.find<CartController>();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -42,14 +46,14 @@ class HomeScreen extends StatelessWidget {
                         top: -150,
                         right: -250,
                         child: BCircularContainer(
-                          backgroundColor: BColors.white.withOpacity(0.1),
+                          backgroundColor: BColors.white.withValues(alpha: 0.1),
                         ),
                       ),
                       Positioned(
                         top: 100,
                         right: -300,
                         child: BCircularContainer(
-                          backgroundColor: BColors.white.withOpacity(0.1),
+                          backgroundColor: BColors.white.withValues(alpha: 0.1),
                         ),
                       ),
                       // Content
@@ -92,39 +96,42 @@ class HomeScreen extends StatelessWidget {
                                         color: BColors.white,
                                       ),
                                       onPressed: () {
-                                        Get.snackbar(
-                                          'Cart',
-                                          'Opening shopping cart...',
-                                          snackPosition: SnackPosition.BOTTOM,
-                                          backgroundColor: BColors.primary
-                                              .withOpacity(0.8),
-                                          colorText: BColors.white,
-                                          duration: const Duration(seconds: 2),
+                                        Get.to(
+                                          () => const CartScreen(),
+                                          transition: Transition.rightToLeft,
                                         );
                                       },
                                     ),
                                     Positioned(
                                       right: 0,
-                                      child: Container(
-                                        width: 18,
-                                        height: 18,
-                                        decoration: BoxDecoration(
-                                          color: BColors.black,
-                                          borderRadius: BorderRadius.circular(
-                                            100,
-                                          ),
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            '2',
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.labelSmall!.apply(
-                                              color: BColors.white,
-                                              fontSizeFactor: 0.8,
-                                            ),
-                                          ),
-                                        ),
+                                      child: Obx(
+                                        () =>
+                                            cartController.cartCount > 0
+                                                ? Container(
+                                                  width: 18,
+                                                  height: 18,
+                                                  decoration: BoxDecoration(
+                                                    color: BColors.black,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          100,
+                                                        ),
+                                                  ),
+                                                  child: Center(
+                                                    child: Text(
+                                                      '${cartController.cartCount}',
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .labelSmall!
+                                                          .apply(
+                                                            color:
+                                                                BColors.white,
+                                                            fontSizeFactor: 0.8,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                )
+                                                : const SizedBox.shrink(),
                                       ),
                                     ),
                                   ],
@@ -187,7 +194,9 @@ class HomeScreen extends StatelessWidget {
                                                           SnackPosition.BOTTOM,
                                                       backgroundColor: BColors
                                                           .primary
-                                                          .withOpacity(0.8),
+                                                          .withValues(
+                                                            alpha: 0.8,
+                                                          ),
                                                       colorText: BColors.white,
                                                       duration: const Duration(
                                                         seconds: 2,
@@ -253,6 +262,7 @@ class HomeScreen extends StatelessWidget {
                         itemBuilder: (_, index) {
                           final product = filteredProducts[index];
                           return BProductCardVertical(
+                            productId: product['id']!,
                             productName: product['name']!,
                             price: product['price']!,
                             discount: product['discount'],
@@ -314,33 +324,11 @@ class HomeScreen extends StatelessWidget {
                                   'assets/images/banners/promo-banner-1.png',
                               backgroundColor:
                                   isDark
-                                      ? BColors.grey.withOpacity(0.1)
-                                      : BColors.grey.withOpacity(0.1),
+                                      ? BColors.grey.withValues(alpha: 0.1)
+                                      : BColors.grey.withValues(alpha: 0.1),
                               padding: const EdgeInsets.all(BSizes.paddingMd),
                               height: 200,
                               width: double.infinity,
-                              // child: Container(
-                              //   padding:
-                              //       const EdgeInsets.all(BSizes.paddingLg),
-                              //   child: Column(
-                              //     crossAxisAlignment: CrossAxisAlignment.start,
-                              //     mainAxisAlignment: MainAxisAlignment.center,
-                              //     children: [
-                              //       Text(
-                              //         'SNEAKERS OF\nTHE WEEK',
-                              //         style: Theme.of(context)
-                              //             .textTheme
-                              //             .headlineMedium!
-                              //             .apply(
-                              //               color: isDark
-                              //                   ? BColors.white
-                              //                   : BColors.black,
-                              //               fontWeightDelta: 2,
-                              //             ),
-                              //       ),
-                              //     ],
-                              //   ),
-                              // ),
                             ),
                             Container(
                               height: 200,
@@ -380,8 +368,8 @@ class HomeScreen extends StatelessWidget {
                                 ),
                                 color:
                                     isDark
-                                        ? BColors.grey.withOpacity(0.2)
-                                        : BColors.grey.withOpacity(0.1),
+                                        ? BColors.grey.withValues(alpha: 0.2)
+                                        : BColors.grey.withValues(alpha: 0.1),
                               ),
                               child: Center(
                                 child: Padding(
@@ -441,7 +429,9 @@ class HomeScreen extends StatelessWidget {
                           'View All',
                           'Showing all products...',
                           snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: BColors.primary.withOpacity(0.8),
+                          backgroundColor: BColors.primary.withValues(
+                            alpha: 0.8,
+                          ),
                           colorText: BColors.white,
                           duration: const Duration(seconds: 2),
                         );
@@ -465,6 +455,7 @@ class HomeScreen extends StatelessWidget {
                       itemBuilder: (_, index) {
                         final product = controller.allProducts[index];
                         return BProductCardVertical(
+                          productId: product['id']!,
                           productName: product['name']!,
                           price: product['price']!,
                           discount: product['discount'],
@@ -473,21 +464,16 @@ class HomeScreen extends StatelessWidget {
                               'Product',
                               'You tapped on ${product['name']}',
                               snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: BColors.primary.withOpacity(0.8),
+                              backgroundColor: BColors.primary.withValues(
+                                alpha: 0.8,
+                              ),
                               colorText: BColors.white,
                               duration: const Duration(seconds: 2),
                             );
                           },
                           onFavoriteTap: () {
-                            Get.snackbar(
-                              'Wishlist',
-                              '${product['name']} added to wishlist',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: BColors.secondary.withOpacity(
-                                0.8,
-                              ),
-                              colorText: BColors.white,
-                              duration: const Duration(seconds: 2),
+                            debugPrint(
+                              "the product is tapped  ${product['name']!}",
                             );
                           },
                         );

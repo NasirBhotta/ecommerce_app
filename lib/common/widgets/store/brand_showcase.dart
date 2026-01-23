@@ -31,8 +31,8 @@ class BBrandShowcase extends StatelessWidget {
         border: Border.all(
           color:
               isDark
-                  ? BColors.white.withOpacity(0.2)
-                  : BColors.grey.withOpacity(0.3),
+                  ? BColors.white.withValues(alpha: 0.2)
+                  : BColors.grey.withValues(alpha: 0.3),
         ),
       ),
       child: Column(

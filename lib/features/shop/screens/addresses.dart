@@ -39,8 +39,8 @@ class AddressesScreen extends StatelessWidget {
                     size: 100,
                     color:
                         isDark
-                            ? BColors.white.withOpacity(0.2)
-                            : BColors.grey.withOpacity(0.4),
+                            ? BColors.white.withValues(alpha: 0.2)
+                            : BColors.grey.withValues(alpha: 0.4),
                   ),
                   const SizedBox(height: BSizes.spaceBetweenSections),
                   Text(
@@ -53,7 +53,7 @@ class AddressesScreen extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color:
                           isDark
-                              ? BColors.white.withOpacity(0.6)
+                              ? BColors.white.withValues(alpha: 0.6)
                               : BColors.grey,
                     ),
                     textAlign: TextAlign.center,
@@ -117,16 +117,16 @@ class _AddressCard extends StatelessWidget {
       decoration: BoxDecoration(
         color:
             isDark
-                ? BColors.grey.withOpacity(0.1)
-                : BColors.grey.withOpacity(0.05),
+                ? BColors.grey.withValues(alpha: 0.1)
+                : BColors.grey.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(BSizes.cardRadius),
         border: Border.all(
           color:
               isSelected
                   ? BColors.primary
                   : (isDark
-                      ? BColors.white.withOpacity(0.1)
-                      : BColors.grey.withOpacity(0.2)),
+                      ? BColors.white.withValues(alpha: 0.1)
+                      : BColors.grey.withValues(alpha: 0.2)),
           width: isSelected ? 2 : 1,
         ),
       ),

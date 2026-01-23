@@ -152,7 +152,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: BColors.primary.withOpacity(0.1),
+                  color: BColors.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -188,7 +188,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               Text(
                 'We\'ve sent a verification email to the address above. Please click the link in the email to verify your account.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: isDark ? BColors.white.withOpacity(0.7) : BColors.grey,
+                  color: isDark ? BColors.white.withValues(alpha: 0.7) : BColors.grey,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -241,8 +241,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                 decoration: BoxDecoration(
                   color:
                       isDark
-                          ? BColors.grey.withOpacity(0.1)
-                          : BColors.grey.withOpacity(0.05),
+                          ? BColors.grey.withValues(alpha: 0.1)
+                          : BColors.grey.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(BSizes.borderRadius),
                 ),
                 child: Column(

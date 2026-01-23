@@ -13,6 +13,18 @@ class CartController extends GetxController {
   // Get cart count
   int get cartCount => cartItems.length;
 
+  // Get quantity of a specific product
+  int getProductQuantity(String productId) {
+    // If productId is empty, try to match by name or return 0
+    if (productId.isEmpty) return 0;
+
+    final item = cartItems.firstWhere(
+      (element) => element['id'] == productId,
+      orElse: () => {},
+    );
+    return item.isNotEmpty ? item['quantity'] : 0;
+  }
+
   // Calculate total quantity
   int get totalQuantity {
     return cartItems.fold(0, (sum, item) => sum + (item['quantity'] as int));

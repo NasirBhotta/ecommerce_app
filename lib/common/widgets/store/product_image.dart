@@ -26,8 +26,8 @@ class BProductImageCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(BSizes.paddingMd),
           color:
               isDark
-                  ? BColors.grey.withOpacity(0.1)
-                  : BColors.grey.withOpacity(0.1),
+                  ? BColors.grey.withValues(alpha: 0.1)
+                  : BColors.grey.withValues(alpha: 0.1),
         ),
         child: Stack(
           children: [
@@ -36,7 +36,7 @@ class BProductImageCard extends StatelessWidget {
               child: Icon(
                 Icons.image,
                 size: 40,
-                color: BColors.grey.withOpacity(0.5),
+                color: BColors.grey.withValues(alpha: 0.5),
               ),
             ),
             // Discount Badge

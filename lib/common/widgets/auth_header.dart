@@ -24,8 +24,8 @@ class BAuthHeader extends StatelessWidget {
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color:
                 isDark
-                    ? BColors.white.withOpacity(0.6)
-                    : BColors.black.withOpacity(0.6),
+                    ? BColors.white.withValues(alpha: 0.6)
+                    : BColors.black.withValues(alpha: 0.6),
           ),
         ),
       ],

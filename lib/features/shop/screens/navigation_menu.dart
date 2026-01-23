@@ -36,8 +36,8 @@ class NavigationMenu extends StatelessWidget {
           backgroundColor: isDark ? BColors.black : BColors.white,
           indicatorColor:
               isDark
-                  ? BColors.white.withOpacity(0.1)
-                  : BColors.primary.withOpacity(0.1),
+                  ? BColors.white.withValues(alpha: 0.1)
+                  : BColors.primary.withValues(alpha: 0.1),
           destinations: const [
             NavigationDestination(
               icon: Icon(Iconsax.home),

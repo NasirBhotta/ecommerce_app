@@ -14,8 +14,8 @@ class CartScreen extends StatelessWidget {
     final controller = Get.find<CartController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Load sample data
-    controller.loadSampleData();
+    // // Load sample data
+    // controller.loadSampleData();
 
     return Scaffold(
       appBar: AppBar(
@@ -56,8 +56,8 @@ class CartScreen extends StatelessWidget {
                     size: 100,
                     color:
                         isDark
-                            ? BColors.white.withOpacity(0.2)
-                            : BColors.grey.withOpacity(0.4),
+                            ? BColors.white.withValues(alpha: 0.2)
+                            : BColors.grey.withValues(alpha: 0.4),
                   ),
                   const SizedBox(height: BSizes.spaceBetweenSections),
                   Text(
@@ -70,7 +70,7 @@ class CartScreen extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color:
                           isDark
-                              ? BColors.white.withOpacity(0.6)
+                              ? BColors.white.withValues(alpha: 0.6)
                               : BColors.grey,
                     ),
                     textAlign: TextAlign.center,
@@ -112,7 +112,7 @@ class CartScreen extends StatelessWidget {
                 color: isDark ? BColors.black : BColors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: BColors.grey.withOpacity(0.2),
+                    color: BColors.grey.withValues(alpha: 0.2),
                     blurRadius: 10,
                     offset: const Offset(0, -5),
                   ),
@@ -188,14 +188,14 @@ class _CartItemCard extends StatelessWidget {
       decoration: BoxDecoration(
         color:
             isDark
-                ? BColors.grey.withOpacity(0.1)
-                : BColors.grey.withOpacity(0.05),
+                ? BColors.grey.withValues(alpha: 0.1)
+                : BColors.grey.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(BSizes.cardRadius),
         border: Border.all(
           color:
               isDark
-                  ? BColors.white.withOpacity(0.1)
-                  : BColors.grey.withOpacity(0.2),
+                  ? BColors.white.withValues(alpha: 0.1)
+                  : BColors.grey.withValues(alpha: 0.2),
         ),
       ),
       child: Row(
@@ -205,13 +205,13 @@ class _CartItemCard extends StatelessWidget {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: BColors.grey.withOpacity(0.1),
+              color: BColors.grey.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(BSizes.paddingMd),
             ),
             child: Icon(
               Icons.image,
               size: 40,
-              color: BColors.grey.withOpacity(0.5),
+              color: BColors.grey.withValues(alpha: 0.5),
             ),
           ),
           const SizedBox(width: BSizes.paddingMd),
@@ -231,7 +231,9 @@ class _CartItemCard extends StatelessWidget {
                   '${item['brand']} • ${item['size']} • ${item['color']}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color:
-                        isDark ? BColors.white.withOpacity(0.6) : BColors.grey,
+                        isDark
+                            ? BColors.white.withValues(alpha: 0.6)
+                            : BColors.grey,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -248,7 +250,7 @@ class _CartItemCard extends StatelessWidget {
                     // Quantity Controls
                     Container(
                       decoration: BoxDecoration(
-                        color: BColors.primary.withOpacity(0.1),
+                        color: BColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(100),
                       ),
                       child: Row(

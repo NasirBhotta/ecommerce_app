@@ -30,7 +30,7 @@ class BankAccountScreen extends StatelessWidget {
             padding: const EdgeInsets.all(BSizes.paddingLg),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [BColors.primary, BColors.primary.withOpacity(0.7)],
+                colors: [BColors.primary, BColors.primary.withValues(alpha: 0.7)],
               ),
               borderRadius: BorderRadius.circular(BSizes.cardRadius),
             ),
@@ -39,7 +39,7 @@ class BankAccountScreen extends StatelessWidget {
                 Text(
                   'Available Balance',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: BColors.white.withOpacity(0.9),
+                    color: BColors.white.withValues(alpha: 0.9),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -76,7 +76,7 @@ class BankAccountScreen extends StatelessWidget {
                       Icon(
                         Iconsax.bank,
                         size: 100,
-                        color: BColors.grey.withOpacity(0.3),
+                        color: BColors.grey.withValues(alpha: 0.3),
                       ),
                       const SizedBox(height: BSizes.spaceBetweenItems),
                       const Text('No Bank Accounts Added'),
@@ -103,7 +103,7 @@ class BankAccountScreen extends StatelessWidget {
                         color:
                             isPrimary
                                 ? BColors.primary
-                                : BColors.grey.withOpacity(0.2),
+                                : BColors.grey.withValues(alpha: 0.2),
                         width: isPrimary ? 2 : 1,
                       ),
                     ),

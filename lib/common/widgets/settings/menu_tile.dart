@@ -31,7 +31,7 @@ class BSettingsMenuTile extends StatelessWidget {
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          color: BColors.primary.withOpacity(0.1),
+          color: BColors.primary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(BSizes.paddingMd),
         ),
         child: Icon(icon, color: BColors.primary, size: 24),
@@ -40,7 +40,7 @@ class BSettingsMenuTile extends StatelessWidget {
       subtitle: Text(
         subtitle,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: isDark ? BColors.white.withOpacity(0.6) : BColors.grey,
+          color: isDark ? BColors.white.withValues(alpha: 0.6) : BColors.grey,
         ),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,

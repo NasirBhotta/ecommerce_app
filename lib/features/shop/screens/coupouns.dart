@@ -111,8 +111,8 @@ class _CouponCard extends StatelessWidget {
         gradient: LinearGradient(
           colors:
               isActive
-                  ? [BColors.primary, BColors.primary.withOpacity(0.7)]
-                  : [BColors.grey, BColors.grey.withOpacity(0.5)],
+                  ? [BColors.primary, BColors.primary.withValues(alpha: 0.7)]
+                  : [BColors.grey, BColors.grey.withValues(alpha: 0.5)],
         ),
       ),
       child: Padding(
@@ -144,7 +144,7 @@ class _CouponCard extends StatelessWidget {
             Text(
               coupon['description'],
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: BColors.white.withOpacity(0.9),
+                color: BColors.white.withValues(alpha: 0.9),
               ),
             ),
             const Divider(color: BColors.white, height: 24),
@@ -154,7 +154,7 @@ class _CouponCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: BColors.white.withOpacity(0.2),
+                      color: BColors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(

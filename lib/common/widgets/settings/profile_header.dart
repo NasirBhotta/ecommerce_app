@@ -26,7 +26,7 @@ class BProfileHeader extends StatelessWidget {
       padding: const EdgeInsets.all(BSizes.paddingLg),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [BColors.primary, BColors.primary.withOpacity(0.8)],
+          colors: [BColors.primary, BColors.primary.withValues(alpha: 0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -106,7 +106,7 @@ class BProfileHeader extends StatelessWidget {
           Text(
             email,
             style: Theme.of(context).textTheme.bodyMedium!.apply(
-              color: BColors.white.withOpacity(0.9),
+              color: BColors.white.withValues(alpha: 0.9),
             ),
           ),
           const SizedBox(height: BSizes.spaceBetweenItems),

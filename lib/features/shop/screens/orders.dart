@@ -49,9 +49,9 @@ class OrdersScreen extends StatelessWidget {
                       onSelected: (_) => controller.changeFilter(filter),
                       backgroundColor:
                           isDark
-                              ? BColors.grey.withOpacity(0.1)
-                              : BColors.grey.withOpacity(0.05),
-                      selectedColor: BColors.primary.withOpacity(0.2),
+                              ? BColors.grey.withValues(alpha: 0.1)
+                              : BColors.grey.withValues(alpha: 0.05),
+                      selectedColor: BColors.primary.withValues(alpha: 0.2),
                       checkmarkColor: BColors.primary,
                       labelStyle: TextStyle(
                         color:
@@ -85,8 +85,8 @@ class OrdersScreen extends StatelessWidget {
                           size: 100,
                           color:
                               isDark
-                                  ? BColors.white.withOpacity(0.2)
-                                  : BColors.grey.withOpacity(0.4),
+                                  ? BColors.white.withValues(alpha: 0.2)
+                                  : BColors.grey.withValues(alpha: 0.4),
                         ),
                         const SizedBox(height: BSizes.spaceBetweenSections),
                         Text(
@@ -101,7 +101,7 @@ class OrdersScreen extends StatelessWidget {
                           ).textTheme.bodyMedium?.copyWith(
                             color:
                                 isDark
-                                    ? BColors.white.withOpacity(0.6)
+                                    ? BColors.white.withValues(alpha: 0.6)
                                     : BColors.grey,
                           ),
                           textAlign: TextAlign.center,
@@ -145,14 +145,14 @@ class _OrderCard extends StatelessWidget {
       decoration: BoxDecoration(
         color:
             isDark
-                ? BColors.grey.withOpacity(0.1)
-                : BColors.grey.withOpacity(0.05),
+                ? BColors.grey.withValues(alpha: 0.1)
+                : BColors.grey.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(BSizes.cardRadius),
         border: Border.all(
           color:
               isDark
-                  ? BColors.white.withOpacity(0.1)
-                  : BColors.grey.withOpacity(0.2),
+                  ? BColors.white.withValues(alpha: 0.1)
+                  : BColors.grey.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -161,7 +161,7 @@ class _OrderCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(BSizes.paddingMd),
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
+              color: statusColor.withValues(alpha: 0.1),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(BSizes.cardRadius),
                 topRight: Radius.circular(BSizes.cardRadius),

@@ -34,7 +34,7 @@ class StoreScreen extends StatelessWidget {
                     'Cart',
                     'Opening shopping cart...',
                     snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: BColors.primary.withOpacity(0.8),
+                    backgroundColor: BColors.primary.withValues(alpha: 0.8),
                     colorText: BColors.white,
                     duration: const Duration(seconds: 2),
                   );
@@ -103,7 +103,9 @@ class StoreScreen extends StatelessWidget {
                             'Brands',
                             'Viewing all brands...',
                             snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: BColors.primary.withOpacity(0.8),
+                            backgroundColor: BColors.primary.withValues(
+                              alpha: 0.8,
+                            ),
                             colorText: BColors.white,
                             duration: const Duration(seconds: 2),
                           );
@@ -200,7 +202,7 @@ class StoreScreen extends StatelessWidget {
                       'Suggestions',
                       'Viewing all suggestions...',
                       snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: BColors.primary.withOpacity(0.8),
+                      backgroundColor: BColors.primary.withValues(alpha: 0.8),
                       colorText: BColors.white,
                       duration: const Duration(seconds: 2),
                     );
@@ -224,6 +226,7 @@ class StoreScreen extends StatelessWidget {
                   itemBuilder: (_, index) {
                     final product = controller.suggestedProducts[index];
                     return BProductCardVertical(
+                      productId: product['id']!,
                       productName: product['name']!,
                       price: product['price']!,
                       discount: product['discount'],
@@ -232,7 +235,9 @@ class StoreScreen extends StatelessWidget {
                           'Product',
                           'You tapped on ${product['name']}',
                           snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: BColors.primary.withOpacity(0.8),
+                          backgroundColor: BColors.primary.withValues(
+                            alpha: 0.8,
+                          ),
                           colorText: BColors.white,
                           duration: const Duration(seconds: 2),
                         );
@@ -242,7 +247,9 @@ class StoreScreen extends StatelessWidget {
                           'Wishlist',
                           '${product['name']} added to wishlist',
                           snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: BColors.secondary.withOpacity(0.8),
+                          backgroundColor: BColors.secondary.withValues(
+                            alpha: 0.8,
+                          ),
                           colorText: BColors.white,
                           duration: const Duration(seconds: 2),
                         );

@@ -25,14 +25,14 @@ class BEmptyState extends StatelessWidget {
             size: 100,
             color:
                 isDark
-                    ? BColors.white.withOpacity(0.3)
-                    : BColors.grey.withOpacity(0.5),
+                    ? BColors.white.withValues(alpha: 0.3)
+                    : BColors.grey.withValues(alpha: 0.5),
           ),
           const SizedBox(height: BSizes.spaceBetweenItems),
           Text(
             message,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: isDark ? BColors.white.withOpacity(0.6) : BColors.grey,
+              color: isDark ? BColors.white.withValues(alpha: 0.6) : BColors.grey,
             ),
             textAlign: TextAlign.center,
           ),

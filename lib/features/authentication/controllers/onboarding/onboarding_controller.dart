@@ -1,6 +1,6 @@
 import 'package:ecommerce_app/features/authentication/screens/authscreens/login.dart';
-import 'package:ecommerce_app/util/constants/BText.dart';
-import 'package:ecommerce_app/util/constants/Bimages.dart';
+import 'package:ecommerce_app/util/constants/b_text.dart';
+import 'package:ecommerce_app/util/constants/b_images.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';

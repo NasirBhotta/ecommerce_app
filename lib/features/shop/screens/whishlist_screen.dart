@@ -79,8 +79,8 @@ class WishlistScreen extends StatelessWidget {
                     size: 100,
                     color:
                         isDark
-                            ? BColors.white.withOpacity(0.2)
-                            : BColors.grey.withOpacity(0.4),
+                            ? BColors.white.withValues(alpha: 0.2)
+                            : BColors.grey.withValues(alpha: 0.4),
                   ),
                   const SizedBox(height: BSizes.spaceBetweenSections),
                   Text(
@@ -94,7 +94,7 @@ class WishlistScreen extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color:
                           isDark
-                              ? BColors.white.withOpacity(0.6)
+                              ? BColors.white.withValues(alpha: 0.6)
                               : BColors.grey,
                     ),
                     textAlign: TextAlign.center,
@@ -206,6 +206,7 @@ class WishlistScreen extends StatelessWidget {
                   itemBuilder: (_, index) {
                     final product = controller.wishlistItems[index];
                     return BProductCardVertical(
+                      productId: product['id'],
                       productName: product['name'],
                       price: product['price'],
                       discount: product['discount'],
@@ -214,7 +215,9 @@ class WishlistScreen extends StatelessWidget {
                           'Product',
                           'Opening ${product['name']}...',
                           snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: BColors.primary.withOpacity(0.8),
+                          backgroundColor: BColors.primary.withValues(
+                            alpha: 0.8,
+                          ),
                           colorText: BColors.white,
                           duration: const Duration(seconds: 2),
                         );

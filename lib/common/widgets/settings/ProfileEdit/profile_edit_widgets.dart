@@ -27,7 +27,7 @@ class BProfilePictureSection extends StatelessWidget {
                 height: 100,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: BColors.grey.withOpacity(0.2),
+                  color: BColors.grey.withValues(alpha: 0.2),
                 ),
                 child: ClipOval(
                   child:
@@ -99,7 +99,7 @@ class BProfileInfoTile extends StatelessWidget {
       title: Text(
         label,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: isDark ? BColors.white.withOpacity(0.6) : BColors.grey,
+          color: isDark ? BColors.white.withValues(alpha: 0.6) : BColors.grey,
         ),
       ),
       subtitle: Padding(
@@ -118,7 +118,7 @@ class BProfileInfoTile extends StatelessWidget {
                   Icon(
                     Icons.chevron_right,
                     color:
-                        isDark ? BColors.white.withOpacity(0.6) : BColors.grey,
+                        isDark ? BColors.white.withValues(alpha: 0.6) : BColors.grey,
                   ),
       onTap: label == 'E-mail' ? null : onTap,
     );
@@ -143,8 +143,8 @@ class BProfileSectionDivider extends StatelessWidget {
       ),
       color:
           isDark
-              ? BColors.grey.withOpacity(0.1)
-              : BColors.grey.withOpacity(0.05),
+              ? BColors.grey.withValues(alpha: 0.1)
+              : BColors.grey.withValues(alpha: 0.05),
       child: Text(
         title,
         style: Theme.of(

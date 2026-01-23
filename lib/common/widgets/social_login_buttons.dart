@@ -28,8 +28,8 @@ class BSocialLoginButton extends StatelessWidget {
           border: Border.all(
             color:
                 isDark
-                    ? BColors.white.withOpacity(0.2)
-                    : BColors.black.withOpacity(0.2),
+                    ? BColors.white.withValues(alpha: 0.2)
+                    : BColors.black.withValues(alpha: 0.2),
           ),
         ),
         child: Center(

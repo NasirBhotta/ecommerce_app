@@ -16,7 +16,7 @@ class BTextFormFieldTheme {
         labelStyle: const TextStyle(fontSize: 14, color: BColors.black),
         hintStyle: const TextStyle(fontSize: 14, color: BColors.black),
         errorStyle: const TextStyle(fontStyle: FontStyle.normal),
-        floatingLabelStyle: TextStyle(color: BColors.black.withOpacity(0.8)),
+        floatingLabelStyle: TextStyle(color: BColors.black.withValues(alpha: 0.8)),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(width: 1, color: BColors.grey),
@@ -49,7 +49,7 @@ class BTextFormFieldTheme {
         labelStyle: const TextStyle(fontSize: 14, color: BColors.white),
         hintStyle: const TextStyle(fontSize: 14, color: BColors.white),
         errorStyle: const TextStyle(fontStyle: FontStyle.normal),
-        floatingLabelStyle: TextStyle(color: BColors.white.withOpacity(0.8)),
+        floatingLabelStyle: TextStyle(color: BColors.white.withValues(alpha: 0.8)),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(width: 1, color: BColors.white70),

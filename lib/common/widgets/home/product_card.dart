@@ -1,11 +1,13 @@
+import 'package:ecommerce_app/features/shop/controllers/cart_controller.dart';
 import 'package:ecommerce_app/util/constants/sized.dart';
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class BProductCardVertical extends StatefulWidget {
+class BProductCardVertical extends StatelessWidget {
   const BProductCardVertical({
     super.key,
+    required this.productId,
     required this.productName,
     required this.price,
     this.discount,
@@ -14,6 +16,7 @@ class BProductCardVertical extends StatefulWidget {
     this.onFavoriteTap,
   });
 
+  final String productId;
   final String productName;
   final String price;
   final String? discount;
@@ -22,28 +25,12 @@ class BProductCardVertical extends StatefulWidget {
   final VoidCallback? onFavoriteTap;
 
   @override
-  State<BProductCardVertical> createState() => _BProductCardVerticalState();
-}
-
-class _BProductCardVerticalState extends State<BProductCardVertical> {
-  final RxInt quantity = 0.obs;
-
-  void increaseQuantity() {
-    quantity.value++;
-  }
-
-  void decreaseQuantity() {
-    if (quantity.value > 0) {
-      quantity.value--;
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final controller = Get.find<CartController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
-      onTap: widget.onTap,
+      onTap: onTap,
       child: Container(
         width: 180,
         padding: const EdgeInsets.all(1),
@@ -52,7 +39,7 @@ class _BProductCardVerticalState extends State<BProductCardVertical> {
           color: isDark ? BColors.black : BColors.white,
           boxShadow: [
             BoxShadow(
-              color: BColors.grey.withOpacity(0.1),
+              color: BColors.grey.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -68,8 +55,8 @@ class _BProductCardVerticalState extends State<BProductCardVertical> {
                 borderRadius: BorderRadius.circular(BSizes.cardRadius),
                 color:
                     isDark
-                        ? BColors.grey.withOpacity(0.1)
-                        : BColors.grey.withOpacity(0.1),
+                        ? BColors.grey.withValues(alpha: 0.1)
+                        : BColors.grey.withValues(alpha: 0.1),
               ),
               child: Stack(
                 children: [
@@ -78,11 +65,11 @@ class _BProductCardVerticalState extends State<BProductCardVertical> {
                     child: Icon(
                       Icons.image,
                       size: 80,
-                      color: BColors.grey.withOpacity(0.5),
+                      color: BColors.grey.withValues(alpha: 0.5),
                     ),
                   ),
                   // Discount Badge
-                  if (widget.discount != null)
+                  if (discount != null)
                     Positioned(
                       top: 12,
                       left: 12,
@@ -96,7 +83,7 @@ class _BProductCardVerticalState extends State<BProductCardVertical> {
                           borderRadius: BorderRadius.circular(BSizes.paddingSm),
                         ),
                         child: Text(
-                          widget.discount!,
+                          discount!,
                           style: Theme.of(context).textTheme.labelSmall!.apply(
                             color: BColors.black,
                             fontWeightDelta: 2,
@@ -112,15 +99,15 @@ class _BProductCardVerticalState extends State<BProductCardVertical> {
                       decoration: BoxDecoration(
                         color:
                             isDark
-                                ? BColors.black.withOpacity(0.7)
-                                : BColors.white.withOpacity(0.7),
+                                ? BColors.black.withValues(alpha: 0.7)
+                                : BColors.white.withValues(alpha: 0.7),
                         borderRadius: BorderRadius.circular(100),
                       ),
                       child: IconButton(
                         icon: const Icon(Icons.favorite_border),
                         iconSize: 20,
                         color: isDark ? BColors.white : BColors.black,
-                        onPressed: widget.onFavoriteTap ?? () {},
+                        onPressed: onFavoriteTap,
                       ),
                     ),
                   ),
@@ -135,7 +122,7 @@ class _BProductCardVerticalState extends State<BProductCardVertical> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.productName,
+                    productName,
                     style: Theme.of(context).textTheme.labelLarge,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
@@ -164,7 +151,7 @@ class _BProductCardVerticalState extends State<BProductCardVertical> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        widget.price,
+                        price,
                         style: Theme.of(context).textTheme.titleMedium!.apply(
                           color: BColors.primary,
                           fontWeightDelta: 2,
@@ -172,25 +159,31 @@ class _BProductCardVerticalState extends State<BProductCardVertical> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       // Quantity Selector
-                      Obx(
-                        () => Container(
+                      Obx(() {
+                        final quantity = controller.getProductQuantity(
+                          productId,
+                        );
+                        return Container(
                           height: 32,
                           decoration: BoxDecoration(
                             color:
-                                quantity.value > 0
+                                quantity > 0
                                     ? BColors.primary
                                     : (isDark
-                                        ? BColors.grey.withOpacity(0.3)
+                                        ? BColors.grey.withValues(alpha: 0.3)
                                         : BColors.black),
                             borderRadius: BorderRadius.circular(100),
                           ),
                           child:
-                              quantity.value > 0
+                              quantity > 0
                                   ? Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       InkWell(
-                                        onTap: decreaseQuantity,
+                                        onTap:
+                                            () => controller.decreaseQuantity(
+                                              productId,
+                                            ),
                                         child: SizedBox(
                                           width: 32,
                                           height: 32,
@@ -206,7 +199,7 @@ class _BProductCardVerticalState extends State<BProductCardVertical> {
                                           horizontal: 8,
                                         ),
                                         child: Text(
-                                          '${quantity.value}',
+                                          '$quantity',
                                           style: Theme.of(
                                             context,
                                           ).textTheme.labelMedium!.apply(
@@ -216,7 +209,10 @@ class _BProductCardVerticalState extends State<BProductCardVertical> {
                                         ),
                                       ),
                                       InkWell(
-                                        onTap: increaseQuantity,
+                                        onTap:
+                                            () => controller.increaseQuantity(
+                                              productId,
+                                            ),
                                         child: SizedBox(
                                           width: 32,
                                           height: 32,
@@ -230,7 +226,19 @@ class _BProductCardVerticalState extends State<BProductCardVertical> {
                                     ],
                                   )
                                   : InkWell(
-                                    onTap: increaseQuantity,
+                                    // Add to Cart
+                                    onTap: () {
+                                      controller.addToCart({
+                                        'id': productId,
+                                        'name': productName,
+                                        'price': price,
+                                        'image': imageUrl,
+                                        'brand': 'Nike', // Hardcoded for demo
+                                        'size': 'M', // Default
+                                        'color': 'Default',
+                                        'quantity': 1,
+                                      });
+                                    },
                                     child: SizedBox(
                                       width: 32,
                                       height: 32,
@@ -241,8 +249,8 @@ class _BProductCardVerticalState extends State<BProductCardVertical> {
                                       ),
                                     ),
                                   ),
-                        ),
-                      ),
+                        );
+                      }),
                     ],
                   ),
                 ],

@@ -35,8 +35,8 @@ class BProductCardHorizontal extends StatelessWidget {
           border: Border.all(
             color:
                 isDark
-                    ? BColors.white.withOpacity(0.1)
-                    : BColors.grey.withOpacity(0.2),
+                    ? BColors.white.withValues(alpha: 0.1)
+                    : BColors.grey.withValues(alpha: 0.2),
           ),
         ),
         child: Column(
@@ -52,8 +52,8 @@ class BProductCardHorizontal extends StatelessWidget {
                 ),
                 color:
                     isDark
-                        ? BColors.grey.withOpacity(0.1)
-                        : BColors.grey.withOpacity(0.1),
+                        ? BColors.grey.withValues(alpha: 0.1)
+                        : BColors.grey.withValues(alpha: 0.1),
               ),
               child: Stack(
                 children: [
@@ -62,7 +62,7 @@ class BProductCardHorizontal extends StatelessWidget {
                     child: Icon(
                       Icons.image,
                       size: 60,
-                      color: BColors.grey.withOpacity(0.5),
+                      color: BColors.grey.withValues(alpha: 0.5),
                     ),
                   ),
                   // Discount Badge
@@ -96,8 +96,8 @@ class BProductCardHorizontal extends StatelessWidget {
                       decoration: BoxDecoration(
                         color:
                             isDark
-                                ? BColors.black.withOpacity(0.7)
-                                : BColors.white.withOpacity(0.7),
+                                ? BColors.black.withValues(alpha: 0.7)
+                                : BColors.white.withValues(alpha: 0.7),
                         borderRadius: BorderRadius.circular(100),
                       ),
                       child: IconButton(

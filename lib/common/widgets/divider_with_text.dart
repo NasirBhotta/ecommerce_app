@@ -17,8 +17,8 @@ class BDividerWithText extends StatelessWidget {
           child: Divider(
             color:
                 isDark
-                    ? BColors.white.withOpacity(0.2)
-                    : BColors.black.withOpacity(0.2),
+                    ? BColors.white.withValues(alpha: 0.2)
+                    : BColors.black.withValues(alpha: 0.2),
           ),
         ),
         Padding(
@@ -28,8 +28,8 @@ class BDividerWithText extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color:
                   isDark
-                      ? BColors.white.withOpacity(0.6)
-                      : BColors.black.withOpacity(0.6),
+                      ? BColors.white.withValues(alpha: 0.6)
+                      : BColors.black.withValues(alpha: 0.6),
             ),
           ),
         ),
@@ -37,8 +37,8 @@ class BDividerWithText extends StatelessWidget {
           child: Divider(
             color:
                 isDark
-                    ? BColors.white.withOpacity(0.2)
-                    : BColors.black.withOpacity(0.2),
+                    ? BColors.white.withValues(alpha: 0.2)
+                    : BColors.black.withValues(alpha: 0.2),
           ),
         ),
       ],

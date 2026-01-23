@@ -33,8 +33,8 @@ class BBrandCard extends StatelessWidget {
                   ? Border.all(
                     color:
                         isDark
-                            ? BColors.white.withOpacity(0.2)
-                            : BColors.grey.withOpacity(0.3),
+                            ? BColors.white.withValues(alpha: 0.2)
+                            : BColors.grey.withValues(alpha: 0.3),
                   )
                   : null,
           color: Colors.transparent,
@@ -48,8 +48,8 @@ class BBrandCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color:
                     isDark
-                        ? BColors.white.withOpacity(0.1)
-                        : BColors.grey.withOpacity(0.1),
+                        ? BColors.white.withValues(alpha: 0.1)
+                        : BColors.grey.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(100),
               ),
               child: Center(
@@ -92,7 +92,7 @@ class BBrandCard extends StatelessWidget {
                       fontSize: 10,
                       color:
                           isDark
-                              ? BColors.white.withOpacity(0.6)
+                              ? BColors.white.withValues(alpha: 0.6)
                               : BColors.grey,
                     ),
                   ),

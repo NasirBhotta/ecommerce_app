@@ -58,8 +58,8 @@ class ProductDetailScreen extends StatelessWidget {
               height: 300,
               color:
                   isDark
-                      ? BColors.grey.withOpacity(0.1)
-                      : BColors.grey.withOpacity(0.05),
+                      ? BColors.grey.withValues(alpha: 0.1)
+                      : BColors.grey.withValues(alpha: 0.05),
               child: Column(
                 children: [
                   // Main Image
@@ -68,7 +68,7 @@ class ProductDetailScreen extends StatelessWidget {
                       child: Icon(
                         Icons.image,
                         size: 150,
-                        color: BColors.grey.withOpacity(0.3),
+                        color: BColors.grey.withValues(alpha: 0.3),
                       ),
                     ),
                   ),
@@ -100,7 +100,7 @@ class ProductDetailScreen extends StatelessWidget {
                                       controller.selectedImageIndex.value ==
                                               index
                                           ? BColors.primary
-                                          : BColors.grey.withOpacity(0.3),
+                                          : BColors.grey.withValues(alpha: 0.3),
                                   width:
                                       controller.selectedImageIndex.value ==
                                               index
@@ -109,14 +109,14 @@ class ProductDetailScreen extends StatelessWidget {
                                 ),
                                 color:
                                     isDark
-                                        ? BColors.grey.withOpacity(0.1)
+                                        ? BColors.grey.withValues(alpha: 0.1)
                                         : BColors.white,
                               ),
                               child: Center(
                                 child: Icon(
                                   Icons.image,
                                   size: 30,
-                                  color: BColors.grey.withOpacity(0.5),
+                                  color: BColors.grey.withValues(alpha: 0.5),
                                 ),
                               ),
                             ),
@@ -265,7 +265,7 @@ class ProductDetailScreen extends StatelessWidget {
                                 color:
                                     controller.selectedColorIndex.value == index
                                         ? BColors.primary
-                                        : BColors.grey.withOpacity(0.3),
+                                        : BColors.grey.withValues(alpha: 0.3),
                                 width:
                                     controller.selectedColorIndex.value == index
                                         ? 3
@@ -308,7 +308,7 @@ class ProductDetailScreen extends StatelessWidget {
                                 color:
                                     controller.selectedSizeIndex.value == index
                                         ? BColors.primary
-                                        : BColors.grey.withOpacity(0.3),
+                                        : BColors.grey.withValues(alpha: 0.3),
                                 width:
                                     controller.selectedSizeIndex.value == index
                                         ? 2
@@ -316,7 +316,7 @@ class ProductDetailScreen extends StatelessWidget {
                               ),
                               color:
                                   controller.selectedSizeIndex.value == index
-                                      ? BColors.primary.withOpacity(0.1)
+                                      ? BColors.primary.withValues(alpha: 0.1)
                                       : Colors.transparent,
                             ),
                             child: Text(
@@ -357,7 +357,7 @@ class ProductDetailScreen extends StatelessWidget {
           color: isDark ? BColors.black : BColors.white,
           boxShadow: [
             BoxShadow(
-              color: BColors.grey.withOpacity(0.2),
+              color: BColors.grey.withValues(alpha: 0.2),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),
@@ -374,7 +374,7 @@ class ProductDetailScreen extends StatelessWidget {
                         controller.quantity.value > 0
                             ? BColors.primary
                             : (isDark
-                                ? BColors.grey.withOpacity(0.3)
+                                ? BColors.grey.withValues(alpha: 0.3)
                                 : BColors.black),
                     borderRadius: BorderRadius.circular(100),
                   ),
