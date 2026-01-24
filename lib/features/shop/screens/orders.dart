@@ -1,4 +1,5 @@
 import 'package:ecommerce_app/features/shop/controllers/orders_controller.dart';
+import 'package:ecommerce_app/features/shop/models/order_model.dart';
 import 'package:ecommerce_app/util/constants/sized.dart';
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
 import 'package:flutter/material.dart';
@@ -33,37 +34,39 @@ class OrdersScreen extends StatelessWidget {
             height: 60,
             padding: const EdgeInsets.symmetric(horizontal: BSizes.paddingMd),
             child: Obx(
-              () => ListView.builder(
+              () => ListView(
                 scrollDirection: Axis.horizontal,
-                itemCount: controller.filterOptions.length,
-                itemBuilder: (_, index) {
-                  final filter = controller.filterOptions[index];
-                  final isSelected = controller.selectedFilter.value == filter;
-                  final count = controller.getOrderCountByStatus(filter);
+                children:
+                    controller.filterOptions.map((filter) {
+                      final isSelected =
+                          controller.selectedFilter.value == filter;
+                      final count = controller.getOrderCountByStatus(filter);
 
-                  return Padding(
-                    padding: const EdgeInsets.only(right: BSizes.paddingSm),
-                    child: FilterChip(
-                      label: Text('$filter ($count)'),
-                      selected: isSelected,
-                      onSelected: (_) => controller.changeFilter(filter),
-                      backgroundColor:
-                          isDark
-                              ? BColors.grey.withValues(alpha: 0.1)
-                              : BColors.grey.withValues(alpha: 0.05),
-                      selectedColor: BColors.primary.withValues(alpha: 0.2),
-                      checkmarkColor: BColors.primary,
-                      labelStyle: TextStyle(
-                        color:
-                            isSelected
-                                ? BColors.primary
-                                : (isDark ? BColors.white : BColors.black),
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.normal,
-                      ),
-                    ),
-                  );
-                },
+                      return Padding(
+                        padding: const EdgeInsets.only(right: BSizes.paddingSm),
+                        child: FilterChip(
+                          label: Text('$filter ($count)'),
+                          selected: isSelected,
+                          onSelected: (_) => controller.changeFilter(filter),
+                          backgroundColor:
+                              isDark
+                                  ? BColors.grey.withValues(alpha: 0.1)
+                                  : BColors.grey.withValues(alpha: 0.05),
+                          selectedColor: BColors.primary.withValues(alpha: 0.2),
+                          checkmarkColor: BColors.primary,
+                          labelStyle: TextStyle(
+                            color:
+                                isSelected
+                                    ? BColors.primary
+                                    : (isDark ? BColors.white : BColors.black),
+                            fontWeight:
+                                isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                          ),
+                        ),
+                      );
+                    }).toList(),
               ),
             ),
           ),
@@ -131,14 +134,14 @@ class OrdersScreen extends StatelessWidget {
 class _OrderCard extends StatelessWidget {
   const _OrderCard({required this.order, required this.controller});
 
-  final Map<String, dynamic> order;
+  final OrderModel order;
   final OrdersController controller;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final status = order['status'] as String;
-    final statusColor = Color(int.parse(controller.getStatusColor(status)));
+    final status = order.status;
+    final statusColor = controller.getStatusColor(status);
 
     return Container(
       margin: const EdgeInsets.only(bottom: BSizes.spaceBetweenItems),
@@ -172,7 +175,7 @@ class _OrderCard extends StatelessWidget {
                 Icon(Iconsax.box, color: statusColor, size: 20),
                 const SizedBox(width: 8),
                 Text(
-                  order['orderId'],
+                  order.id,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -210,12 +213,12 @@ class _OrderCard extends StatelessWidget {
                     const Icon(Iconsax.calendar, size: 16),
                     const SizedBox(width: 8),
                     Text(
-                      'Date: ${order['date']}',
+                      'Date: ${order.formattedOrderDate}',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     const Spacer(),
                     Text(
-                      order['total'],
+                      order.formattedTotalAmount,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: BColors.primary,
                         fontWeight: FontWeight.bold,
@@ -230,7 +233,7 @@ class _OrderCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '${order['shippingAddress']['city']}, ${order['shippingAddress']['country']}',
+                        '${order.address?['city'] ?? 'Unknown City'}, ${order.address?['country'] ?? 'Unknown Country'}',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ),
@@ -242,7 +245,7 @@ class _OrderCard extends StatelessWidget {
                     const Icon(Iconsax.wallet, size: 16),
                     const SizedBox(width: 8),
                     Text(
-                      order['paymentMethod'],
+                      order.paymentMethod,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -262,8 +265,7 @@ class _OrderCard extends StatelessWidget {
                     if (status == 'Processing' || status == 'Shipped')
                       Expanded(
                         child: ElevatedButton(
-                          onPressed:
-                              () => controller.trackOrder(order['orderId']),
+                          onPressed: () => controller.trackOrder(order.id),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: BColors.primary,
                           ),
@@ -273,8 +275,7 @@ class _OrderCard extends StatelessWidget {
                     if (status == 'Processing')
                       Expanded(
                         child: OutlinedButton(
-                          onPressed:
-                              () => controller.cancelOrder(order['orderId']),
+                          onPressed: () => controller.cancelOrder(order.id),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.red,
                             side: const BorderSide(color: Colors.red),

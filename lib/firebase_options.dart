@@ -67,6 +67,7 @@ class DefaultFirebaseOptions {
     projectId: 'eventify-c1bae',
     databaseURL: 'https://eventify-c1bae-default-rtdb.firebaseio.com',
     storageBucket: 'eventify-c1bae.firebasestorage.app',
+    iosClientId: '733719165364-slc8b3li7ald1rquutjr2gl81h891nt9.apps.googleusercontent.com',
     iosBundleId: 'com.example.ecommerceApp',
   );
 
@@ -77,6 +78,7 @@ class DefaultFirebaseOptions {
     projectId: 'eventify-c1bae',
     databaseURL: 'https://eventify-c1bae-default-rtdb.firebaseio.com',
     storageBucket: 'eventify-c1bae.firebasestorage.app',
+    iosClientId: '733719165364-slc8b3li7ald1rquutjr2gl81h891nt9.apps.googleusercontent.com',
     iosBundleId: 'com.example.ecommerceApp',
   );
 
@@ -90,4 +92,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'eventify-c1bae.firebasestorage.app',
     measurementId: 'G-27NW6FXSHD',
   );
+
 }

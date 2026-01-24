@@ -13,7 +13,12 @@
           "package_name": "com.example.ecommerce_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "733719165364-5im1rp19k3rbjgmkl00daqh8asr736nb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyC3-w7ZCyEkFiwslBXvvENh0LEGMZgsRpk"
@@ -21,7 +26,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "733719165364-5im1rp19k3rbjgmkl00daqh8asr736nb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "733719165364-00ge8d49kuphbhmrjbl24rqr7f7o17s2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.eventify"
+              }
+            }
+          ]
         }
       }
     },
@@ -32,7 +49,12 @@
           "package_name": "com.example.eventify"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "733719165364-5im1rp19k3rbjgmkl00daqh8asr736nb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyC3-w7ZCyEkFiwslBXvvENh0LEGMZgsRpk"
@@ -40,7 +62,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "733719165364-5im1rp19k3rbjgmkl00daqh8asr736nb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "733719165364-00ge8d49kuphbhmrjbl24rqr7f7o17s2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.eventify"
+              }
+            }
+          ]
         }
       }
     },
@@ -51,7 +85,12 @@
           "package_name": "com.taskmanager.app.task_manager"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "733719165364-5im1rp19k3rbjgmkl00daqh8asr736nb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyC3-w7ZCyEkFiwslBXvvENh0LEGMZgsRpk"
@@ -59,7 +98,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "733719165364-5im1rp19k3rbjgmkl00daqh8asr736nb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "733719165364-00ge8d49kuphbhmrjbl24rqr7f7o17s2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.eventify"
+              }
+            }
+          ]
         }
       }
     }

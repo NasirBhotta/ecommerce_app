@@ -1,4 +1,5 @@
 import 'package:ecommerce_app/data/repositories/auth_repo.dart';
+import 'package:ecommerce_app/data/repositories/order_repo.dart';
 import 'package:ecommerce_app/data/repositories/user_repo.dart';
 import 'package:ecommerce_app/features/authentication/controllers/auth/forgot_pass_controller.dart';
 import 'package:ecommerce_app/features/authentication/controllers/auth/login_controller.dart';
@@ -72,9 +73,14 @@ class AppBindings extends Bindings {
     Get.lazyPut<WishlistController>(() => WishlistController(), fenix: true);
 
     Get.lazyPut<ProfileController>(() => ProfileController(), fenix: true);
-    Get.lazyPut<ProfileEditController>(() => ProfileEditController(), fenix: true);
+    Get.lazyPut<ProfileEditController>(
+      () => ProfileEditController(),
+      fenix: true,
+    );
     Get.lazyPut<AddressesController>(() => AddressesController(), fenix: true);
     Get.lazyPut<OrdersController>(() => OrdersController(), fenix: true);
+    Get.lazyPut<OrderRepository>(() => OrderRepository(), fenix: true);
+
     Get.lazyPut<CartController>(() => CartController(), fenix: true);
     Get.lazyPut<BankAccountController>(
       () => BankAccountController(),
@@ -89,8 +95,6 @@ class AppBindings extends Bindings {
       () => AccountPrivacyController(),
       fenix: true,
     );
-
-
   }
 }
 
