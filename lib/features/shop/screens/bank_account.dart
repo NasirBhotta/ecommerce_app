@@ -30,7 +30,10 @@ class BankAccountScreen extends StatelessWidget {
             padding: const EdgeInsets.all(BSizes.paddingLg),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [BColors.primary, BColors.primary.withValues(alpha: 0.7)],
+                colors: [
+                  BColors.primary,
+                  BColors.primary.withValues(alpha: 0.7),
+                ],
               ),
               borderRadius: BorderRadius.circular(BSizes.cardRadius),
             ),
@@ -45,6 +48,7 @@ class BankAccountScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 Obx(
                   () => Text(
+                    // This now listens to the aggregated Ledger balance
                     '\$${controller.availableBalance.value.toStringAsFixed(2)}',
                     style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                       color: BColors.white,
@@ -68,6 +72,10 @@ class BankAccountScreen extends StatelessWidget {
           // Accounts List
           Expanded(
             child: Obx(() {
+              if (controller.isLoading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
               if (controller.bankAccounts.isEmpty) {
                 return Center(
                   child: Column(
@@ -90,7 +98,7 @@ class BankAccountScreen extends StatelessWidget {
                 itemCount: controller.bankAccounts.length,
                 itemBuilder: (_, index) {
                   final account = controller.bankAccounts[index];
-                  final isPrimary = account['isPrimary'] ?? false;
+                  final isPrimary = account.isPrimary;
 
                   return Container(
                     margin: const EdgeInsets.only(
@@ -121,7 +129,7 @@ class BankAccountScreen extends StatelessWidget {
                                   Row(
                                     children: [
                                       Text(
-                                        account['bankName'],
+                                        account.bankName,
                                         style:
                                             Theme.of(
                                               context,
@@ -153,7 +161,7 @@ class BankAccountScreen extends StatelessWidget {
                                   ),
                                   Text(
                                     controller.maskAccountNumber(
-                                      account['accountNumber'],
+                                      account.accountNumber,
                                     ),
                                     style:
                                         Theme.of(context).textTheme.bodySmall,
@@ -176,9 +184,9 @@ class BankAccountScreen extends StatelessWidget {
                                   ],
                               onSelected: (value) {
                                 if (value == 'primary') {
-                                  controller.setAsPrimary(account['id']);
+                                  controller.setAsPrimary(account.id);
                                 } else {
-                                  controller.deleteBankAccount(account['id']);
+                                  controller.deleteBankAccount(account.id);
                                 }
                               },
                             ),
