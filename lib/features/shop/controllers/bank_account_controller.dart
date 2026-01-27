@@ -12,18 +12,17 @@ class BankAccountController extends GetxController {
 
   final _bankRepository = Get.put(BankAccountRepository());
   final _walletRepository = Get.put(WalletRepository());
-  final _walletController = Get.put(
-    WalletController(),
-  ); // Inject Wallet Controller
+  final _walletController = Get.put(WalletController());
 
   final RxList<BankAccountModel> bankAccounts = <BankAccountModel>[].obs;
-  // Removed mock availableBalance, will use _walletController.totalBalance
-  final isLoading = false.obs;
+  final RxBool isLoading = false.obs;
+  final RxBool isSaving = false.obs;
 
   // Form Input Controllers
   final bankName = TextEditingController();
   final accountHolderName = TextEditingController();
   final accountNumber = TextEditingController();
+  final routingNumber = TextEditingController();
   final withdrawalAmount = TextEditingController();
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
@@ -31,6 +30,16 @@ class BankAccountController extends GetxController {
   void onInit() {
     fetchBankAccounts();
     super.onInit();
+  }
+
+  @override
+  void onClose() {
+    bankName.dispose();
+    accountHolderName.dispose();
+    accountNumber.dispose();
+    routingNumber.dispose();
+    withdrawalAmount.dispose();
+    super.onClose();
   }
 
   // Getter for UI to access balance
@@ -42,7 +51,13 @@ class BankAccountController extends GetxController {
       final accounts = await _bankRepository.fetchBankAccounts();
       bankAccounts.assignAll(accounts);
     } catch (e) {
-      Get.snackbar('Error', e.toString());
+      Get.snackbar(
+        'Error',
+        'Failed to load bank accounts: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.1),
+        colorText: Colors.red,
+      );
     } finally {
       isLoading.value = false;
     }
@@ -52,13 +67,16 @@ class BankAccountController extends GetxController {
     if (!formKey.currentState!.validate()) return;
 
     try {
-      isLoading.value = true;
+      isSaving.value = true;
       Get.back(); // Close dialog
 
       final newAccount = BankAccountModel(
+        id: '',
         bankName: bankName.text.trim(),
         accountNumber: accountNumber.text.trim(),
         accountHolderName: accountHolderName.text.trim(),
+        routingNumber: routingNumber.text.trim(),
+        isPrimary: bankAccounts.isEmpty,
       );
 
       await _bankRepository.addBankAccount(newAccount);
@@ -67,45 +85,93 @@ class BankAccountController extends GetxController {
       bankName.clear();
       accountHolderName.clear();
       accountNumber.clear();
+      routingNumber.clear();
 
       await fetchBankAccounts();
-      Get.snackbar('Success', 'Bank account added successfully.');
+
+      Get.snackbar(
+        'Success',
+        'Bank account added successfully',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green.withOpacity(0.1),
+        colorText: Colors.green,
+        duration: const Duration(seconds: 2),
+      );
     } catch (e) {
-      Get.snackbar('Error', e.toString());
+      Get.snackbar(
+        'Error',
+        'Failed to add bank account: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.1),
+        colorText: Colors.red,
+      );
     } finally {
-      isLoading.value = false;
+      isSaving.value = false;
     }
   }
 
   void deleteBankAccount(String accountId) {
     Get.defaultDialog(
       title: 'Delete Account',
-      middleText: 'Are you sure you want to delete this account?',
+      titleStyle: const TextStyle(fontWeight: FontWeight.bold),
+      middleText: 'Are you sure you want to delete this bank account?',
+      textConfirm: 'Delete',
+      textCancel: 'Cancel',
+      confirmTextColor: Colors.white,
+      buttonColor: Colors.red,
+      cancelTextColor: Colors.black,
       onConfirm: () async {
         Get.back();
         try {
           isLoading.value = true;
           await _bankRepository.deleteBankAccount(accountId);
           await fetchBankAccounts();
-          Get.snackbar('Success', 'Account deleted.');
+
+          Get.snackbar(
+            'Success',
+            'Bank account deleted successfully',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green.withOpacity(0.1),
+            colorText: Colors.green,
+            duration: const Duration(seconds: 2),
+          );
         } catch (e) {
-          Get.snackbar('Error', e.toString());
+          Get.snackbar(
+            'Error',
+            'Failed to delete account: ${e.toString()}',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red.withOpacity(0.1),
+            colorText: Colors.red,
+          );
         } finally {
           isLoading.value = false;
         }
       },
-      onCancel: () => Get.back(),
     );
   }
 
-  void setAsPrimary(String accountId) async {
+  Future<void> setAsPrimary(String accountId) async {
     try {
       isLoading.value = true;
       await _bankRepository.setPrimaryAccount(accountId);
       await fetchBankAccounts();
-      Get.snackbar('Success', 'Primary account updated.');
+
+      Get.snackbar(
+        'Success',
+        'Primary account updated successfully',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green.withOpacity(0.1),
+        colorText: Colors.green,
+        duration: const Duration(seconds: 2),
+      );
     } catch (e) {
-      Get.snackbar('Error', e.toString());
+      Get.snackbar(
+        'Error',
+        'Failed to update primary account: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.1),
+        colorText: Colors.red,
+      );
     } finally {
       isLoading.value = false;
     }
@@ -118,75 +184,175 @@ class BankAccountController extends GetxController {
 
   Future<void> processWithdrawal(String accountId) async {
     if (withdrawalAmount.text.isEmpty) {
-      Get.snackbar('Error', 'Please enter an amount');
+      Get.snackbar(
+        'Error',
+        'Please enter an amount',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.1),
+        colorText: Colors.red,
+      );
       return;
     }
 
     final amount = double.tryParse(withdrawalAmount.text);
     if (amount == null || amount <= 0) {
-      Get.snackbar('Error', 'Invalid amount');
+      Get.snackbar(
+        'Error',
+        'Please enter a valid amount',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.1),
+        colorText: Colors.red,
+      );
       return;
     }
 
     if (amount > availableBalance.value) {
-      // Checks against real ledger balance
-      Get.snackbar('Error', 'Insufficient balance');
+      Get.snackbar(
+        'Error',
+        'Insufficient balance. Available: \$${availableBalance.value.toStringAsFixed(2)}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.1),
+        colorText: Colors.red,
+      );
       return;
     }
 
     try {
       isLoading.value = true;
       Get.back(); // Close dialog
+
       // Call Cloud Function via Wallet Repository
       await _walletRepository.requestWithdrawal(amount, accountId);
-      Get.snackbar('Success', 'Withdrawal request submitted successfully.');
+
+      Get.snackbar(
+        'Success',
+        'Withdrawal request submitted successfully',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green.withOpacity(0.1),
+        colorText: Colors.green,
+        duration: const Duration(seconds: 2),
+      );
+
+      // Clear withdrawal amount
+      withdrawalAmount.clear();
     } catch (e) {
-      Get.snackbar('Error', e.toString());
+      Get.snackbar(
+        'Error',
+        'Failed to process withdrawal: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.1),
+        colorText: Colors.red,
+      );
     } finally {
       isLoading.value = false;
     }
   }
 
   void showAddAccountDialog() {
+    // Reset form
+    bankName.clear();
+    accountHolderName.clear();
+    accountNumber.clear();
+    routingNumber.clear();
+
     Get.defaultDialog(
       title: 'Add Bank Account',
+      titleStyle: const TextStyle(fontWeight: FontWeight.bold),
       content: Form(
         key: formKey,
-        child: Column(
-          children: [
-            TextFormField(
-              controller: accountHolderName,
-              decoration: const InputDecoration(
-                labelText: 'Account Holder Name',
-                prefixIcon: Icon(Iconsax.user),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: accountHolderName,
+                decoration: const InputDecoration(
+                  labelText: 'Account Holder Name',
+                  prefixIcon: Icon(Iconsax.user),
+                  border: OutlineInputBorder(),
+                ),
+                textCapitalization: TextCapitalization.words,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Account holder name is required';
+                  }
+                  if (value.trim().length < 2) {
+                    return 'Name must be at least 2 characters';
+                  }
+                  return null;
+                },
               ),
-              validator:
-                  (value) => value != null && value.isEmpty ? 'Required' : null,
-            ),
-            const SizedBox(height: BSizes.spaceBetweenItems),
-            TextFormField(
-              controller: bankName,
-              decoration: const InputDecoration(
-                labelText: 'Bank Name',
-                prefixIcon: Icon(Iconsax.bank),
+              const SizedBox(height: BSizes.spaceBetweenItems),
+              TextFormField(
+                controller: bankName,
+                decoration: const InputDecoration(
+                  labelText: 'Bank Name',
+                  prefixIcon: Icon(Iconsax.bank),
+                  border: OutlineInputBorder(),
+                ),
+                textCapitalization: TextCapitalization.words,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Bank name is required';
+                  }
+                  return null;
+                },
               ),
-              validator:
-                  (value) => value != null && value.isEmpty ? 'Required' : null,
-            ),
-            const SizedBox(height: BSizes.spaceBetweenItems),
-            TextFormField(
-              controller: accountNumber,
-              decoration: const InputDecoration(
-                labelText: 'Account Number',
-                prefixIcon: Icon(Iconsax.card),
+              const SizedBox(height: BSizes.spaceBetweenItems),
+              TextFormField(
+                controller: accountNumber,
+                decoration: const InputDecoration(
+                  labelText: 'Account Number',
+                  prefixIcon: Icon(Iconsax.card),
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Account number is required';
+                  }
+                  if (value.trim().length < 8) {
+                    return 'Account number must be at least 8 digits';
+                  }
+                  return null;
+                },
               ),
-              validator:
-                  (value) => value != null && value.isEmpty ? 'Required' : null,
-            ),
-          ],
+              const SizedBox(height: BSizes.spaceBetweenItems),
+              TextFormField(
+                controller: routingNumber,
+                decoration: const InputDecoration(
+                  labelText: 'Routing Number',
+                  prefixIcon: Icon(Iconsax.code),
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Routing number is required';
+                  }
+                  if (value.trim().length != 9) {
+                    return 'Routing number must be 9 digits';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
         ),
       ),
-      confirm: ElevatedButton(onPressed: addAccount, child: const Text('Save')),
+      confirm: Obx(
+        () => ElevatedButton(
+          onPressed: isSaving.value ? null : addAccount,
+          child:
+              isSaving.value
+                  ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                  : const Text('Save'),
+        ),
+      ),
       cancel: OutlinedButton(
         onPressed: () => Get.back(),
         child: const Text('Cancel'),
@@ -205,32 +371,81 @@ class BankAccountController extends GetxController {
 
     if (primaryAccount == null) {
       Get.snackbar(
-        'Error',
-        'Please add a bank account and set it as primary first.',
+        'No Primary Account',
+        'Please add a bank account and set it as primary first',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange.withOpacity(0.1),
+        colorText: Colors.orange,
+        duration: const Duration(seconds: 3),
       );
       return;
     }
 
     withdrawalAmount.clear();
+
     Get.defaultDialog(
       title: 'Withdraw Balance',
+      titleStyle: const TextStyle(fontWeight: FontWeight.bold),
       content: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Available: \$${availableBalance.value.toStringAsFixed(2)}'),
-          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              children: [
+                const Text('Available Balance', style: TextStyle(fontSize: 12)),
+                const SizedBox(height: 4),
+                Obx(
+                  () => Text(
+                    '\$${availableBalance.value.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
           TextFormField(
             controller: withdrawalAmount,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(
-              labelText: 'Amount',
+              labelText: 'Withdrawal Amount',
               prefixText: '\$ ',
+              border: OutlineInputBorder(),
+              hintText: '0.00',
             ),
+            autofocus: true,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Withdrawing to: ${primaryAccount.bankName} ****${primaryAccount.accountNumber}',
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
-      confirm: ElevatedButton(
-        onPressed: () => processWithdrawal(primaryAccount!.id),
-        child: const Text('Withdraw'),
+      confirm: Obx(
+        () => ElevatedButton(
+          onPressed:
+              isLoading.value
+                  ? null
+                  : () => processWithdrawal(primaryAccount!.id),
+          child:
+              isLoading.value
+                  ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                  : const Text('Withdraw'),
+        ),
       ),
       cancel: OutlinedButton(
         onPressed: () => Get.back(),
