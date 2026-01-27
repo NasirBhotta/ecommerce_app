@@ -1,4 +1,6 @@
-import 'package:ecommerce_app/features/shop/controllers/addresses_controller.dart';
+import 'package:ecommerce_app/common/widgets/add_new_address.dart';
+import 'package:ecommerce_app/common/widgets/address_controller.dart';
+import 'package:ecommerce_app/common/widgets/address_model.dart';
 import 'package:ecommerce_app/util/constants/sized.dart';
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +12,7 @@ class AddressesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<AddressesController>();
+    final controller = Get.put(AddressController());
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -27,7 +29,7 @@ class AddressesScreen extends StatelessWidget {
         ),
       ),
       body: Obx(() {
-        if (controller.addresses.isEmpty) {
+        if (controller.allAddresses.isEmpty) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(BSizes.paddingLg),
@@ -66,22 +68,23 @@ class AddressesScreen extends StatelessWidget {
 
         return ListView.builder(
           padding: const EdgeInsets.all(BSizes.paddingMd),
-          itemCount: controller.addresses.length,
+          itemCount: controller.allAddresses.length,
           itemBuilder: (_, index) {
-            final address = controller.addresses[index];
+            final address = controller.allAddresses[index];
             return _AddressCard(
               address: address,
-              isSelected: controller.selectedAddressId.value == address['id'],
-              onSelect: () => controller.selectAddress(address['id']),
-              onEdit: () => controller.showEditAddressDialog(address),
-              onDelete: () => controller.deleteAddress(address['id']),
-              onSetDefault: () => controller.setAsDefault(address['id']),
+              isSelected: controller.selectedAddress.value.id == address.id,
+              onSelect: () => controller.selectAddress(address),
+              onEdit:
+                  () =>
+                      Get.to(() => AddNewAddressScreen(addressToEdit: address)),
+              onDelete: () => controller.deleteAddress(address.id),
             );
           },
         );
       }),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: controller.showAddAddressDialog,
+        onPressed: () => Get.to(() => const AddNewAddressScreen()),
         icon: const Icon(Icons.add),
         label: const Text('Add Address'),
         backgroundColor: BColors.primary,
@@ -97,20 +100,17 @@ class _AddressCard extends StatelessWidget {
     required this.onSelect,
     required this.onEdit,
     required this.onDelete,
-    required this.onSetDefault,
   });
 
-  final Map<String, dynamic> address;
+  final AddressModel address;
   final bool isSelected;
   final VoidCallback onSelect;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-  final VoidCallback onSetDefault;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isDefault = address['isDefault'] ?? false;
 
     return Container(
       margin: const EdgeInsets.only(bottom: BSizes.spaceBetweenItems),
@@ -144,30 +144,11 @@ class _AddressCard extends StatelessWidget {
             title: Row(
               children: [
                 Text(
-                  address['name'],
+                  address.name,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                if (isDefault) ...[
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: BColors.primary,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      'Default',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.labelSmall?.copyWith(color: BColors.white),
-                    ),
-                  ),
-                ],
               ],
             ),
             subtitle: Padding(
@@ -179,7 +160,7 @@ class _AddressCard extends StatelessWidget {
                     children: [
                       const Icon(Iconsax.call, size: 14),
                       const SizedBox(width: 8),
-                      Text(address['phone']),
+                      Text(address.phoneNumber),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -190,7 +171,7 @@ class _AddressCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          '${address['street']}, ${address['city']}, ${address['state']} ${address['zip']}, ${address['country']}',
+                          address.toString(),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ),
@@ -213,17 +194,6 @@ class _AddressCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (!isDefault)
-                      const PopupMenuItem(
-                        value: 'default',
-                        child: Row(
-                          children: [
-                            Icon(Iconsax.tick_circle),
-                            SizedBox(width: 8),
-                            Text('Set as Default'),
-                          ],
-                        ),
-                      ),
                     const PopupMenuItem(
                       value: 'delete',
                       child: Row(
@@ -239,9 +209,6 @@ class _AddressCard extends StatelessWidget {
                 switch (value) {
                   case 'edit':
                     onEdit();
-                    break;
-                  case 'default':
-                    onSetDefault();
                     break;
                   case 'delete':
                     onDelete();

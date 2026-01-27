@@ -1,1 +1,42 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"eventify-c1bae","appId":"1:733719165364:android:f7b299725647229f1d1ae1","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"eventify-c1bae","configurations":{"android":"1:733719165364:android:f7b299725647229f1d1ae1","ios":"1:733719165364:ios:022c766a60c885141d1ae1","macos":"1:733719165364:ios:022c766a60c885141d1ae1","web":"1:733719165364:web:902291c923aebeb91d1ae1","windows":"1:733719165364:web:331dc088024307d71d1ae1"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "eventify-c1bae",
+          "appId": "1:733719165364:android:f7b299725647229f1d1ae1",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "eventify-c1bae",
+          "configurations": {
+            "android": "1:733719165364:android:f7b299725647229f1d1ae1",
+            "ios": "1:733719165364:ios:022c766a60c885141d1ae1",
+            "macos": "1:733719165364:ios:022c766a60c885141d1ae1",
+            "web": "1:733719165364:web:902291c923aebeb91d1ae1",
+            "windows": "1:733719165364:web:331dc088024307d71d1ae1"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    }
+  ]
+}
