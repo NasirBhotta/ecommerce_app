@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ecommerce_app/common/widgets/address_model.dart';
+import 'package:ecommerce_app/features/shop/models/address_model.dart';
 import 'package:get/get.dart';
 // import '../authentication/authentication_repository.dart'; // Ensure you import your Auth Repo
 

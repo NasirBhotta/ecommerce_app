@@ -1,379 +1,316 @@
+import 'package:ecommerce_app/features/shop/models/address_model.dart';
+import 'package:ecommerce_app/data/repositories/address_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class AddressesController extends GetxController {
-  static AddressesController get instance => Get.find();
+class AddressController extends GetxController {
+  static AddressController get instance => Get.find();
 
-  // Observable addresses list
-  final RxList<Map<String, dynamic>> addresses = <Map<String, dynamic>>[].obs;
+  // Text Controllers
+  final name = TextEditingController();
+  final phoneNumber = TextEditingController();
+  final street = TextEditingController();
+  final postalCode = TextEditingController();
+  final city = TextEditingController();
+  final state = TextEditingController();
+  final country = TextEditingController();
 
-  // Selected address
-  final selectedAddressId = ''.obs;
+  // Form Key
+  GlobalKey<FormState> addressFormKey = GlobalKey<FormState>();
 
-  // Loading state
-  final isLoading = false.obs;
+  // Observable Variables
+  final RxBool isLoading = false.obs;
+  final RxBool isSaving = false.obs;
+  final RxList<AddressModel> allAddresses = <AddressModel>[].obs;
+  final Rx<AddressModel> selectedAddress = AddressModel.empty().obs;
+  final Rx<String> selectedCountry = ''.obs;
 
-  // Text controllers for add/edit form
-  final nameController = TextEditingController();
-  final phoneController = TextEditingController();
-  final streetController = TextEditingController();
-  final cityController = TextEditingController();
-  final stateController = TextEditingController();
-  final zipController = TextEditingController();
-  final countryController = TextEditingController();
+  // Repository
+  final addressRepository = Get.put(AddressRepository());
 
   @override
   void onInit() {
     super.onInit();
-    loadSampleData();
+    fetchAddresses();
   }
 
   @override
   void onClose() {
-    nameController.dispose();
-    phoneController.dispose();
-    streetController.dispose();
-    cityController.dispose();
-    stateController.dispose();
-    zipController.dispose();
-    countryController.dispose();
+    // Dispose controllers
+    name.dispose();
+    phoneNumber.dispose();
+    street.dispose();
+    postalCode.dispose();
+    city.dispose();
+    state.dispose();
+    country.dispose();
     super.onClose();
   }
 
-  // Get selected address
-  Map<String, dynamic>? get selectedAddress {
-    if (selectedAddressId.value.isEmpty) return null;
+  // Fetch all user addresses
+  Future<void> fetchAddresses() async {
     try {
-      return addresses.firstWhere(
-        (addr) => addr['id'] == selectedAddressId.value,
+      isLoading.value = true;
+      final addresses = await addressRepository.fetchUserAddresses();
+      allAddresses.assignAll(addresses);
+
+      // Set the selected address
+      selectedAddress.value = addresses.firstWhere(
+        (element) => element.selectedAddress,
+        orElse: () => AddressModel.empty(),
       );
     } catch (e) {
-      return null;
+      Get.snackbar(
+        'Error',
+        'Failed to load addresses: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.1),
+        colorText: Colors.red,
+      );
+    } finally {
+      isLoading.value = false;
     }
   }
 
-  // Select address
-  void selectAddress(String addressId) {
-    selectedAddressId.value = addressId;
-    Get.snackbar(
-      'Address Selected',
-      'This address will be used for delivery',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-    );
-  }
+  // Select an address
+  Future<void> selectAddress(AddressModel newSelectedAddress) async {
+    try {
+      // Optimistically update UI
+      final previousSelectedAddress = selectedAddress.value;
+      selectedAddress.value = newSelectedAddress;
 
-  // Show add address dialog
-  void showAddAddressDialog() {
-    _clearControllers();
+      // Clear the previous selected field in database
+      if (previousSelectedAddress.id.isNotEmpty) {
+        await addressRepository.updateSelectedField(
+          previousSelectedAddress.id,
+          false,
+        );
+      }
 
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Add New Address'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildTextField(nameController, 'Full Name', Icons.person),
-              const SizedBox(height: 12),
-              _buildTextField(phoneController, 'Phone Number', Icons.phone),
-              const SizedBox(height: 12),
-              _buildTextField(streetController, 'Street Address', Icons.home),
-              const SizedBox(height: 12),
-              _buildTextField(cityController, 'City', Icons.location_city),
-              const SizedBox(height: 12),
-              _buildTextField(stateController, 'State/Province', Icons.map),
-              const SizedBox(height: 12),
-              _buildTextField(
-                zipController,
-                'ZIP/Postal Code',
-                Icons.markunread_mailbox,
-              ),
-              const SizedBox(height: 12),
-              _buildTextField(countryController, 'Country', Icons.flag),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              if (_validateAddress()) {
-                addAddress();
-                Get.back();
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  }
+      // Set the new selected field to true
+      await addressRepository.updateSelectedField(newSelectedAddress.id, true);
 
-  // Show edit address dialog
-  void showEditAddressDialog(Map<String, dynamic> address) {
-    nameController.text = address['name'];
-    phoneController.text = address['phone'];
-    streetController.text = address['street'];
-    cityController.text = address['city'];
-    stateController.text = address['state'];
-    zipController.text = address['zip'];
-    countryController.text = address['country'];
+      // Update the local list
+      final index = allAddresses.indexWhere(
+        (e) => e.id == newSelectedAddress.id,
+      );
+      if (index != -1) {
+        allAddresses[index].selectedAddress = true;
+      }
 
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Edit Address'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildTextField(nameController, 'Full Name', Icons.person),
-              const SizedBox(height: 12),
-              _buildTextField(phoneController, 'Phone Number', Icons.phone),
-              const SizedBox(height: 12),
-              _buildTextField(streetController, 'Street Address', Icons.home),
-              const SizedBox(height: 12),
-              _buildTextField(cityController, 'City', Icons.location_city),
-              const SizedBox(height: 12),
-              _buildTextField(stateController, 'State/Province', Icons.map),
-              const SizedBox(height: 12),
-              _buildTextField(
-                zipController,
-                'ZIP/Postal Code',
-                Icons.markunread_mailbox,
-              ),
-              const SizedBox(height: 12),
-              _buildTextField(countryController, 'Country', Icons.flag),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              if (_validateAddress()) {
-                updateAddress(address['id']);
-                Get.back();
-              }
-            },
-            child: const Text('Update'),
-          ),
-        ],
-      ),
-    );
-  }
+      // Update previous address in local list
+      if (previousSelectedAddress.id.isNotEmpty) {
+        final prevIndex = allAddresses.indexWhere(
+          (e) => e.id == previousSelectedAddress.id,
+        );
+        if (prevIndex != -1) {
+          allAddresses[prevIndex].selectedAddress = false;
+        }
+      }
 
-  // Add address
-  void addAddress() {
-    final newAddress = {
-      'id': DateTime.now().millisecondsSinceEpoch.toString(),
-      'name': nameController.text.trim(),
-      'phone': phoneController.text.trim(),
-      'street': streetController.text.trim(),
-      'city': cityController.text.trim(),
-      'state': stateController.text.trim(),
-      'zip': zipController.text.trim(),
-      'country': countryController.text.trim(),
-      'isDefault': addresses.isEmpty,
-      'createdAt': DateTime.now().toIso8601String(),
-    };
+      allAddresses.refresh();
+    } catch (e) {
+      // Revert on error
+      selectedAddress.value = allAddresses.firstWhere(
+        (element) => element.selectedAddress,
+        orElse: () => AddressModel.empty(),
+      );
 
-    addresses.add(newAddress);
-
-    if (addresses.length == 1) {
-      selectedAddressId.value = newAddress['id'] as String;
+      Get.snackbar(
+        'Error',
+        'Failed to select address: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.1),
+        colorText: Colors.red,
+      );
     }
-
-    Get.snackbar(
-      'Success',
-      'Address added successfully',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-    );
   }
 
-  // Update address
-  void updateAddress(String addressId) {
-    final index = addresses.indexWhere((addr) => addr['id'] == addressId);
-    if (index != -1) {
-      addresses[index] = {
-        ...addresses[index],
-        'name': nameController.text.trim(),
-        'phone': phoneController.text.trim(),
-        'street': streetController.text.trim(),
-        'city': cityController.text.trim(),
-        'state': stateController.text.trim(),
-        'zip': zipController.text.trim(),
-        'country': countryController.text.trim(),
-        'updatedAt': DateTime.now().toIso8601String(),
-      };
+  // Delete an address
+  Future<void> deleteAddress(String addressId) async {
+    try {
+      // Delete from database
+      await addressRepository.deleteAddress(addressId);
+
+      // Remove from local list
+      allAddresses.removeWhere((element) => element.id == addressId);
+
+      // If deleted address was selected, select the first one available
+      if (selectedAddress.value.id == addressId) {
+        if (allAddresses.isNotEmpty) {
+          await selectAddress(allAddresses.first);
+        } else {
+          selectedAddress.value = AddressModel.empty();
+        }
+      }
+
+      Get.snackbar(
+        'Success',
+        'Address deleted successfully',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green.withOpacity(0.1),
+        colorText: Colors.green,
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to delete address: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.1),
+        colorText: Colors.red,
+      );
+    }
+  }
+
+  // Add new address
+  Future<void> addNewAddress() async {
+    try {
+      // Validate form
+      if (!addressFormKey.currentState!.validate()) {
+        return;
+      }
+
+      isSaving.value = true;
+
+      // Create address model
+      final address = AddressModel(
+        id: '',
+        name: name.text.trim(),
+        phoneNumber: phoneNumber.text.trim(),
+        street: street.text.trim(),
+        city: city.text.trim(),
+        state: state.text.trim(),
+        postalCode: postalCode.text.trim(),
+        country: country.text.trim(),
+        selectedAddress:
+            allAddresses.isEmpty, // First address is selected by default
+      );
+
+      // Add to database
+      final id = await addressRepository.addAddress(address);
+
+      // Update address with ID
+      address.id = id;
+
+      // Add to local list
+      allAddresses.add(address);
+
+      // If this is the first address or should be selected
+      if (address.selectedAddress) {
+        await selectAddress(address);
+      }
+
+      Get.snackbar(
+        'Success',
+        'Address added successfully',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green.withOpacity(0.1),
+        colorText: Colors.green,
+        duration: const Duration(seconds: 2),
+      );
+
+      // Reset and navigate back
+      resetFormFields();
+      Get.back();
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to add address: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.1),
+        colorText: Colors.red,
+      );
+    } finally {
+      isSaving.value = false;
+    }
+  }
+
+  // Update existing address
+  Future<void> updateAddress(String addressId) async {
+    try {
+      // Validate form
+      if (!addressFormKey.currentState!.validate()) {
+        return;
+      }
+
+      isSaving.value = true;
+
+      // Create updated address model
+      final address = AddressModel(
+        id: addressId,
+        name: name.text.trim(),
+        phoneNumber: phoneNumber.text.trim(),
+        street: street.text.trim(),
+        city: city.text.trim(),
+        state: state.text.trim(),
+        postalCode: postalCode.text.trim(),
+        country: country.text.trim(),
+        selectedAddress: selectedAddress.value.id == addressId,
+      );
+
+      // Update in database
+      await addressRepository.updateAddress(address);
+
+      // Update in local list
+      final index = allAddresses.indexWhere((e) => e.id == addressId);
+      if (index != -1) {
+        allAddresses[index] = address;
+        allAddresses.refresh();
+      }
+
+      // Update selected address if it was the one being edited
+      if (selectedAddress.value.id == addressId) {
+        selectedAddress.value = address;
+      }
 
       Get.snackbar(
         'Success',
         'Address updated successfully',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green.withOpacity(0.1),
+        colorText: Colors.green,
         duration: const Duration(seconds: 2),
       );
+
+      // Reset and navigate back
+      resetFormFields();
+      Get.back();
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to update address: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.1),
+        colorText: Colors.red,
+      );
+    } finally {
+      isSaving.value = false;
     }
   }
 
-  // Delete address
-  void deleteAddress(String addressId) {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Delete Address'),
-        content: const Text('Are you sure you want to delete this address?'),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              addresses.removeWhere((addr) => addr['id'] == addressId);
-              if (selectedAddressId.value == addressId) {
-                selectedAddressId.value =
-                    addresses.isNotEmpty ? addresses[0]['id'] : '';
-              }
-              Get.back();
-              Get.snackbar(
-                'Deleted',
-                'Address deleted successfully',
-                snackPosition: SnackPosition.BOTTOM,
-              );
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+  // Initialize form with existing data for editing
+  void initEdit(AddressModel address) {
+    name.text = address.name;
+    phoneNumber.text = address.phoneNumber;
+    street.text = address.street;
+    postalCode.text = address.postalCode;
+    city.text = address.city;
+    state.text = address.state;
+    country.text = address.country;
+    selectedCountry.value = address.country; // Update observable too
   }
 
-  // Set as default address
-  void setAsDefault(String addressId) {
-    for (var addr in addresses) {
-      addr['isDefault'] = addr['id'] == addressId;
-    }
-    addresses.refresh();
-    selectedAddressId.value = addressId;
-
-    Get.snackbar(
-      'Success',
-      'Default address updated',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-    );
+  // Reset form fields
+  void resetFormFields() {
+    name.clear();
+    phoneNumber.clear();
+    street.clear();
+    postalCode.clear();
+    city.clear();
+    state.clear();
+    country.clear();
+    selectedCountry.value = ''; // Reset observable
+    addressFormKey.currentState?.reset();
   }
-
-  // Validate address
-  bool _validateAddress() {
-    if (nameController.text.trim().isEmpty) {
-      Get.snackbar('Error', 'Please enter name');
-      return false;
-    }
-    if (phoneController.text.trim().isEmpty) {
-      Get.snackbar('Error', 'Please enter phone number');
-      return false;
-    }
-    if (streetController.text.trim().isEmpty) {
-      Get.snackbar('Error', 'Please enter street address');
-      return false;
-    }
-    if (cityController.text.trim().isEmpty) {
-      Get.snackbar('Error', 'Please enter city');
-      return false;
-    }
-    return true;
-  }
-
-  // Clear controllers
-  void _clearControllers() {
-    nameController.clear();
-    phoneController.clear();
-    streetController.clear();
-    cityController.clear();
-    stateController.clear();
-    zipController.clear();
-    countryController.clear();
-  }
-
-  // Build text field
-  Widget _buildTextField(
-    TextEditingController controller,
-    String label,
-    IconData icon,
-  ) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
-        border: const OutlineInputBorder(),
-      ),
-    );
-  }
-
-  // Load sample data
-  void loadSampleData() {
-    if (addresses.isEmpty) {
-      addresses.addAll([
-        {
-          'id': '1',
-          'name': 'Taimoor Sikander',
-          'phone': '+92-300-1234567',
-          'street': '123 Main Street, Apartment 4B',
-          'city': 'Islamabad',
-          'state': 'Federal Capital',
-          'zip': '44000',
-          'country': 'Pakistan',
-          'isDefault': true,
-          'createdAt': DateTime.now().toIso8601String(),
-        },
-        {
-          'id': '2',
-          'name': 'Taimoor Sikander',
-          'phone': '+92-300-1234567',
-          'street': '456 Park Avenue',
-          'city': 'Karachi',
-          'state': 'Sindh',
-          'zip': '75500',
-          'country': 'Pakistan',
-          'isDefault': false,
-          'createdAt': DateTime.now().toIso8601String(),
-        },
-      ]);
-      selectedAddressId.value = '1';
-    }
-  }
-
-  // Firebase methods (commented for now)
-
-  // Future<void> loadAddressesFromFirebase(String userId) async {
-  //   try {
-  //     isLoading.value = true;
-  //     final snapshot = await FirebaseFirestore.instance
-  //         .collection('users')
-  //         .doc(userId)
-  //         .collection('addresses')
-  //         .get();
-  //
-  //     addresses.value = snapshot.docs
-  //         .map((doc) => {...doc.data(), 'id': doc.id})
-  //         .toList();
-  //   } catch (e) {
-  //     Get.snackbar('Error', 'Failed to load addresses');
-  //   } finally {
-  //     isLoading.value = false;
-  //   }
-  // }
-
-  // Future<void> saveAddressToFirebase(String userId, Map<String, dynamic> address) async {
-  //   try {
-  //     await FirebaseFirestore.instance
-  //         .collection('users')
-  //         .doc(userId)
-  //         .collection('addresses')
-  //         .doc(address['id'])
-  //         .set(address);
-  //   } catch (e) {
-  //     Get.snackbar('Error', 'Failed to save address');
-  //   }
-  // }
 }

@@ -77,7 +77,7 @@ class AppBindings extends Bindings {
       () => ProfileEditController(),
       fenix: true,
     );
-    Get.lazyPut<AddressesController>(() => AddressesController(), fenix: true);
+    Get.lazyPut<AddressController>(() => AddressController(), fenix: true);
     Get.lazyPut<OrdersController>(() => OrdersController(), fenix: true);
     Get.lazyPut<OrderRepository>(() => OrderRepository(), fenix: true);
 
