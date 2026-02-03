@@ -1,14 +1,19 @@
+import 'dart:async';
+
+import 'package:ecommerce_app/data/repositories/notification_repository.dart';
+import 'package:ecommerce_app/data/repositories/user_repo.dart';
+import 'package:ecommerce_app/features/shop/models/notification_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class NotificationsController extends GetxController {
   static NotificationsController get instance => Get.find();
 
-  // Observable notifications list
-  final RxList<Map<String, dynamic>> notifications =
-      <Map<String, dynamic>>[].obs;
+  final NotificationRepository _repo = Get.put(NotificationRepository());
+  final UserRepository _userRepo = Get.put(UserRepository());
 
-  // Notification settings
+  final RxList<NotificationModel> notifications = <NotificationModel>[].obs;
+
   final orderUpdates = true.obs;
   final promotionalOffers = true.obs;
   final newArrivals = false.obs;
@@ -18,55 +23,102 @@ class NotificationsController extends GetxController {
   final smsNotifications = false.obs;
   final pushNotifications = true.obs;
 
-  // Loading state
   final isLoading = false.obs;
+  StreamSubscription<List<NotificationModel>>? _subscription;
 
-  // Unread count
-  int get unreadCount => notifications.where((n) => !n['isRead']).length;
+  int get unreadCount => notifications.where((n) => !n.isRead).length;
 
   @override
   void onInit() {
     super.onInit();
-    loadSampleData();
+    _listenNotifications();
+    _loadSettings();
   }
 
-  // Mark notification as read
-  void markAsRead(String notificationId) {
-    final index = notifications.indexWhere((n) => n['id'] == notificationId);
-    if (index != -1) {
-      notifications[index]['isRead'] = true;
-      notifications.refresh();
-    }
+  @override
+  void onClose() {
+    _subscription?.cancel();
+    super.onClose();
   }
 
-  // Mark all as read
-  void markAllAsRead() {
-    for (var notification in notifications) {
-      notification['isRead'] = true;
-    }
-    notifications.refresh();
-
-    Get.snackbar(
-      'Success',
-      'All notifications marked as read',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
+  void _listenNotifications() {
+    isLoading.value = true;
+    _subscription = _repo.streamNotifications().listen(
+      (list) {
+        notifications.assignAll(list);
+        isLoading.value = false;
+      },
+      onError: (_) {
+        isLoading.value = false;
+        Get.snackbar('Error', 'Failed to load notifications');
+      },
     );
   }
 
-  // Delete notification
-  void deleteNotification(String notificationId) {
-    notifications.removeWhere((n) => n['id'] == notificationId);
+  Future<void> _loadSettings() async {
+    try {
+      final data = await _userRepo.fetchUserDetails();
+      final settings =
+          data['notificationSettings'] as Map<String, dynamic>? ?? {};
 
-    Get.snackbar(
-      'Deleted',
-      'Notification deleted',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-    );
+      orderUpdates.value = settings['orderUpdates'] ?? orderUpdates.value;
+      promotionalOffers.value =
+          settings['promotionalOffers'] ?? promotionalOffers.value;
+      newArrivals.value = settings['newArrivals'] ?? newArrivals.value;
+      accountActivity.value =
+          settings['accountActivity'] ?? accountActivity.value;
+      appUpdates.value = settings['appUpdates'] ?? appUpdates.value;
+      emailNotifications.value =
+          settings['emailNotifications'] ?? emailNotifications.value;
+      smsNotifications.value =
+          settings['smsNotifications'] ?? smsNotifications.value;
+      pushNotifications.value =
+          settings['pushNotifications'] ?? pushNotifications.value;
+    } catch (_) {}
   }
 
-  // Clear all notifications
+  Future<void> markAsRead(String notificationId) async {
+    try {
+      await _repo.markAsRead(notificationId);
+    } catch (_) {}
+  }
+
+  Future<void> markAllAsRead() async {
+    try {
+      await _repo.markAllAsRead();
+      Get.snackbar(
+        'Success',
+        'All notifications marked as read',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2),
+      );
+    } catch (_) {
+      Get.snackbar(
+        'Error',
+        'Failed to mark all as read',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  Future<void> deleteNotification(String notificationId) async {
+    try {
+      await _repo.deleteNotification(notificationId);
+      Get.snackbar(
+        'Deleted',
+        'Notification deleted',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2),
+      );
+    } catch (_) {
+      Get.snackbar(
+        'Error',
+        'Failed to delete notification',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
   void clearAllNotifications() {
     Get.dialog(
       AlertDialog(
@@ -77,14 +129,22 @@ class NotificationsController extends GetxController {
         actions: [
           TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           TextButton(
-            onPressed: () {
-              notifications.clear();
+            onPressed: () async {
               Get.back();
-              Get.snackbar(
-                'Cleared',
-                'All notifications cleared',
-                snackPosition: SnackPosition.BOTTOM,
-              );
+              try {
+                await _repo.clearAll();
+                Get.snackbar(
+                  'Cleared',
+                  'All notifications cleared',
+                  snackPosition: SnackPosition.BOTTOM,
+                );
+              } catch (_) {
+                Get.snackbar(
+                  'Error',
+                  'Failed to clear notifications',
+                  snackPosition: SnackPosition.BOTTOM,
+                );
+              }
             },
             child: const Text('Clear', style: TextStyle(color: Colors.red)),
           ),
@@ -93,68 +153,85 @@ class NotificationsController extends GetxController {
     );
   }
 
-  // Handle notification tap
-  void onNotificationTap(Map<String, dynamic> notification) {
-    markAsRead(notification['id']);
+  void onNotificationTap(NotificationModel notification) {
+    markAsRead(notification.id);
 
-    // Navigate based on notification type
-    switch (notification['type']) {
+    switch (notification.type) {
       case 'order':
         Get.snackbar('Navigate', 'Opening order details...');
-        // Get.toNamed('/order-details', arguments: notification['data']);
         break;
       case 'promotion':
         Get.snackbar('Navigate', 'Opening promotion...');
-        // Get.toNamed('/promotion', arguments: notification['data']);
         break;
       case 'account':
         Get.snackbar('Navigate', 'Opening account settings...');
-        // Get.toNamed('/account');
         break;
       default:
         break;
     }
   }
 
-  // Toggle notification settings
   void toggleOrderUpdates(bool value) {
     orderUpdates.value = value;
     _showSettingUpdated('Order Updates', value);
+    _persistSettings();
   }
 
   void togglePromotionalOffers(bool value) {
     promotionalOffers.value = value;
     _showSettingUpdated('Promotional Offers', value);
+    _persistSettings();
   }
 
   void toggleNewArrivals(bool value) {
     newArrivals.value = value;
     _showSettingUpdated('New Arrivals', value);
+    _persistSettings();
   }
 
   void toggleAccountActivity(bool value) {
     accountActivity.value = value;
     _showSettingUpdated('Account Activity', value);
+    _persistSettings();
   }
 
   void toggleAppUpdates(bool value) {
     appUpdates.value = value;
     _showSettingUpdated('App Updates', value);
+    _persistSettings();
   }
 
   void toggleEmailNotifications(bool value) {
     emailNotifications.value = value;
     _showSettingUpdated('Email Notifications', value);
+    _persistSettings();
   }
 
   void toggleSmsNotifications(bool value) {
     smsNotifications.value = value;
     _showSettingUpdated('SMS Notifications', value);
+    _persistSettings();
   }
 
   void togglePushNotifications(bool value) {
     pushNotifications.value = value;
     _showSettingUpdated('Push Notifications', value);
+    _persistSettings();
+  }
+
+  Future<void> _persistSettings() async {
+    try {
+      await _userRepo.updateNotificationSettings({
+        'orderUpdates': orderUpdates.value,
+        'promotionalOffers': promotionalOffers.value,
+        'newArrivals': newArrivals.value,
+        'accountActivity': accountActivity.value,
+        'appUpdates': appUpdates.value,
+        'emailNotifications': emailNotifications.value,
+        'smsNotifications': smsNotifications.value,
+        'pushNotifications': pushNotifications.value,
+      });
+    } catch (_) {}
   }
 
   void _showSettingUpdated(String setting, bool enabled) {
@@ -166,7 +243,6 @@ class NotificationsController extends GetxController {
     );
   }
 
-  // Get notification icon
   String getNotificationIcon(String type) {
     switch (type) {
       case 'order':
@@ -184,155 +260,22 @@ class NotificationsController extends GetxController {
     }
   }
 
-  // Get time ago string
-  String getTimeAgo(String dateString) {
-    try {
-      final date = DateTime.parse(dateString);
-      final now = DateTime.now();
-      final difference = now.difference(date);
+  String getTimeAgo(DateTime? date) {
+    if (date == null) return '';
 
-      if (difference.inDays > 7) {
-        return '${date.day}/${date.month}/${date.year}';
-      } else if (difference.inDays > 0) {
-        return '${difference.inDays}d ago';
-      } else if (difference.inHours > 0) {
-        return '${difference.inHours}h ago';
-      } else if (difference.inMinutes > 0) {
-        return '${difference.inMinutes}m ago';
-      } else {
-        return 'Just now';
-      }
-    } catch (e) {
-      return dateString;
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays > 7) {
+      return '${date.day}/${date.month}/${date.year}';
+    } else if (difference.inDays > 0) {
+      return '${difference.inDays}d ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'Just now';
     }
   }
-
-  // Load sample data
-  void loadSampleData() {
-    if (notifications.isEmpty) {
-      notifications.addAll([
-        {
-          'id': '1',
-          'type': 'order',
-          'title': 'Order Shipped',
-          'message':
-              'Your order #ORD-2024-002 has been shipped and is on its way!',
-          'timestamp':
-              DateTime.now()
-                  .subtract(const Duration(hours: 2))
-                  .toIso8601String(),
-          'isRead': false,
-          'data': {'orderId': 'ORD-2024-002'},
-        },
-        {
-          'id': '2',
-          'type': 'promotion',
-          'title': 'Flash Sale Alert!',
-          'message': 'Get 50% off on selected items. Sale ends in 24 hours!',
-          'timestamp':
-              DateTime.now()
-                  .subtract(const Duration(hours: 5))
-                  .toIso8601String(),
-          'isRead': false,
-          'data': {'promoId': 'FLASH50'},
-        },
-        {
-          'id': '3',
-          'type': 'order',
-          'title': 'Order Delivered',
-          'message':
-              'Your order #ORD-2024-001 has been delivered. Thank you for shopping!',
-          'timestamp':
-              DateTime.now()
-                  .subtract(const Duration(days: 1))
-                  .toIso8601String(),
-          'isRead': true,
-          'data': {'orderId': 'ORD-2024-001'},
-        },
-        {
-          'id': '4',
-          'type': 'account',
-          'title': 'Security Alert',
-          'message':
-              'New login detected from Chrome on Windows. If this wasn\'t you, please secure your account.',
-          'timestamp':
-              DateTime.now()
-                  .subtract(const Duration(days: 2))
-                  .toIso8601String(),
-          'isRead': true,
-          'data': {},
-        },
-        {
-          'id': '5',
-          'type': 'delivery',
-          'title': 'Out for Delivery',
-          'message':
-              'Your order #ORD-2024-002 is out for delivery. Expected today by 6 PM.',
-          'timestamp':
-              DateTime.now()
-                  .subtract(const Duration(hours: 3))
-                  .toIso8601String(),
-          'isRead': false,
-          'data': {'orderId': 'ORD-2024-002'},
-        },
-      ]);
-    }
-  }
-
-  // Firebase methods (commented for now)
-
-  // Future<void> loadNotificationsFromFirebase(String userId) async {
-  //   try {
-  //     isLoading.value = true;
-  //     final snapshot = await FirebaseFirestore.instance
-  //         .collection('users')
-  //         .doc(userId)
-  //         .collection('notifications')
-  //         .orderBy('timestamp', descending: true)
-  //         .limit(50)
-  //         .get();
-  //
-  //     notifications.value = snapshot.docs
-  //         .map((doc) => {...doc.data(), 'id': doc.id})
-  //         .toList();
-  //   } catch (e) {
-  //     Get.snackbar('Error', 'Failed to load notifications');
-  //   } finally {
-  //     isLoading.value = false;
-  //   }
-  // }
-
-  // Future<void> updateNotificationSettings(String userId) async {
-  //   try {
-  //     await FirebaseFirestore.instance
-  //         .collection('users')
-  //         .doc(userId)
-  //         .update({
-  //       'notificationSettings': {
-  //         'orderUpdates': orderUpdates.value,
-  //         'promotionalOffers': promotionalOffers.value,
-  //         'newArrivals': newArrivals.value,
-  //         'accountActivity': accountActivity.value,
-  //         'appUpdates': appUpdates.value,
-  //         'emailNotifications': emailNotifications.value,
-  //         'smsNotifications': smsNotifications.value,
-  //         'pushNotifications': pushNotifications.value,
-  //       },
-  //     });
-  //   } catch (e) {
-  //     Get.snackbar('Error', 'Failed to update settings');
-  //   }
-  // }
-
-  // Stream notifications
-  // Stream<List<Map<String, dynamic>>> streamNotifications(String userId) {
-  //   return FirebaseFirestore.instance
-  //       .collection('users')
-  //       .doc(userId)
-  //       .collection('notifications')
-  //       .orderBy('timestamp', descending: true)
-  //       .snapshots()
-  //       .map((snapshot) =>
-  //           snapshot.docs.map((doc) => {...doc.data(), 'id': doc.id}).toList());
-  // }
 }

@@ -47,6 +47,10 @@ class NotificationsScreen extends StatelessWidget {
         ],
       ),
       body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
         if (controller.notifications.isEmpty) {
           return const Center(child: Text('No notifications'));
         }
@@ -55,7 +59,7 @@ class NotificationsScreen extends StatelessWidget {
           itemCount: controller.notifications.length,
           itemBuilder: (_, index) {
             final notification = controller.notifications[index];
-            final isRead = notification['isRead'] ?? false;
+            final isRead = notification.isRead;
 
             return ListTile(
               leading: CircleAvatar(
@@ -63,7 +67,7 @@ class NotificationsScreen extends StatelessWidget {
                 child: Icon(Iconsax.notification, color: BColors.primary),
               ),
               title: Text(
-                notification['title'],
+                notification.title,
                 style: TextStyle(
                   fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
                 ),
@@ -71,18 +75,17 @@ class NotificationsScreen extends StatelessWidget {
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(notification['message']),
+                  Text(notification.body),
                   const SizedBox(height: 4),
                   Text(
-                    controller.getTimeAgo(notification['timestamp']),
+                    controller.getTimeAgo(notification.createdAt),
                     style: const TextStyle(fontSize: 12),
                   ),
                 ],
               ),
               trailing: IconButton(
                 icon: const Icon(Icons.close),
-                onPressed:
-                    () => controller.deleteNotification(notification['id']),
+                onPressed: () => controller.deleteNotification(notification.id),
               ),
               onTap: () => controller.onNotificationTap(notification),
             );

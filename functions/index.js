@@ -416,6 +416,117 @@ exports.requestWithdrawal = onCall({ consumeAppCheckToken: false }, async (reque
     }
 });
 
+
+// ==========================================
+// SEND PUSH NOTIFICATION ON CREATE
+// ==========================================
+exports.sendNotificationOnCreate = functions.firestore
+    .document('users/{userId}/notifications/{notificationId}')
+    .onCreate(async (snap, context) => {
+        const data = snap.data() || {};
+        const userId = context.params.userId;
+
+        try {
+            const userDoc = await db.collection('users').doc(userId).get();
+            const userData = userDoc.exists ? userDoc.data() : {};
+            const settings = (userData && userData.notificationSettings) || {};
+
+            if (settings.pushNotifications === false) {
+                return null;
+            }
+
+            const type = data.type || 'system';
+            const typeSettingMap = {
+                order: 'orderUpdates',
+                delivery: 'orderUpdates',
+                payment: 'orderUpdates',
+                promotion: 'promotionalOffers',
+                account: 'accountActivity',
+                app: 'appUpdates',
+                system: 'appUpdates',
+                new_arrival: 'newArrivals'
+            };
+
+            const typeSetting = typeSettingMap[type];
+            if (typeSetting && settings[typeSetting] === false) {
+                return null;
+            }
+
+            const tokensSnapshot = await db
+                .collection('users')
+                .doc(userId)
+                .collection('fcm_tokens')
+                .get();
+
+            if (tokensSnapshot.empty) {
+                return null;
+            }
+
+            const tokens = tokensSnapshot.docs.map(doc => doc.id);
+
+            const dataPayload = {};
+            if (data.data && typeof data.data === 'object') {
+                Object.keys(data.data).forEach(key => {
+                    dataPayload[key] = String(data.data[key]);
+                });
+            }
+            dataPayload.notificationId = context.params.notificationId;
+            dataPayload.type = type;
+
+            const message = {
+                tokens,
+                notification: {
+                    title: data.title || 'Notification',
+                    body: data.body || ''
+                },
+                data: dataPayload,
+                android: {
+                    notification: {
+                        channelId: 'default'
+                    }
+                },
+                apns: {
+                    payload: {
+                        aps: {
+                            sound: 'default'
+                        }
+                    }
+                }
+            };
+
+            const response = await admin.messaging().sendEachForMulticast(message);
+
+            const invalidTokens = [];
+            response.responses.forEach((result, index) => {
+                if (result.error) {
+                    const code = result.error.code;
+                    if (code === 'messaging/registration-token-not-registered' ||
+                        code === 'messaging/invalid-registration-token') {
+                        invalidTokens.push(tokens[index]);
+                    }
+                }
+            });
+
+            if (invalidTokens.length > 0) {
+                const batch = db.batch();
+                invalidTokens.forEach(token => {
+                    const ref = db
+                        .collection('users')
+                        .doc(userId)
+                        .collection('fcm_tokens')
+                        .doc(token);
+                    batch.delete(ref);
+                });
+                await batch.commit();
+            }
+
+            return null;
+        } catch (error) {
+            console.error('Error sending notification:', error);
+            return null;
+        }
+    });
+
 // ==========================================
 // STRIPE WEBHOOK
 // ==========================================

@@ -59,6 +59,10 @@ class UserRepository extends GetxController {
           'orderUpdates': true,
           'promotionalOffers': true,
           'newArrivals': false,
+          'accountActivity': true,
+          'appUpdates': true,
+          'emailNotifications': true,
+          'smsNotifications': false,
           'pushNotifications': true,
         },
       });

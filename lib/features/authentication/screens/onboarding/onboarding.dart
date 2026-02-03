@@ -62,9 +62,8 @@ class OnboardingScreen extends StatelessWidget {
                             context,
                           ).textTheme.bodyMedium?.copyWith(
                             fontSize: BSizes.fontMd,
-                            color: Theme.of(
-                              context,
-                            ).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                            color: Theme.of(context).textTheme.bodyMedium?.color
+                                ?.withValues(alpha: 0.7),
                           ),
                           textAlign: TextAlign.center,
                         ),

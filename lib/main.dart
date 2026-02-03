@@ -1,4 +1,5 @@
 import 'package:ecommerce_app/data/repositories/auth_repo.dart';
+import 'package:ecommerce_app/data/services/notification_service.dart';
 import 'package:ecommerce_app/data/repositories/order_repo.dart';
 import 'package:ecommerce_app/data/repositories/user_repo.dart';
 import 'package:ecommerce_app/features/authentication/controllers/auth/forgot_pass_controller.dart';
@@ -40,12 +41,11 @@ void main() async {
 
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  ).then((FirebaseApp value) {
-    Get.put(AuthenticationRepository());
-    Get.put(UserRepository());
-  });
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  Get.put(AuthenticationRepository());
+  Get.put(UserRepository());
+  await Get.putAsync<NotificationService>(() => NotificationService().init());
 
   // await FirebaseAppCheck.instance.activate(
   //   // For Android
