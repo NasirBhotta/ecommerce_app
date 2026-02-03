@@ -194,25 +194,18 @@ exports.getPaymentMethods = functions.https.onCall(async (data, context) => {
 // ==========================================
 // DELETE PAYMENT METHOD
 // ==========================================
-exports.deletePaymentMethod = functions.https.onCall(async (data, context) => {
-    requireAuth(context);
-
-    try {
-        validateRequired(data, ['paymentMethodId']);
-
-        await stripe.paymentMethods.detach(data.paymentMethodId);
-        return { message: 'Payment method deleted successfully' };
-    } catch (error) {
-        console.error('Error deleting payment method:', error);
-        throw new functions.https.HttpsError('internal', error.message);
-    }
-});
-
 // ==========================================
 // ADD BANK ACCOUNT
 // ==========================================
 exports.addBankAccount = functions.https.onCall(async (data, context) => {
+    // Fixed logging - don't stringify context directly
+    console.log('addBankAccount called');
+    console.log('Auth UID:', context.auth?.uid);
+    console.log('Auth Token:', context.auth?.token);
+    console.log('Data received:', data);
+
     const userId = requireAuth(context);
+    console.log('User ID:', userId);
 
     try {
         validateRequired(data, ['bankName', 'accountNumber', 'accountHolderName', 'routingNumber']);
@@ -226,11 +219,13 @@ exports.addBankAccount = functions.https.onCall(async (data, context) => {
 
         const isPrimary = accountsSnapshot.empty;
 
-        // If this should be primary, unset other primary accounts
-        if (isPrimary) {
+        // If not primary, unset other primary accounts if needed
+        if (!isPrimary) {
             const batch = db.batch();
             accountsSnapshot.forEach(doc => {
-                batch.update(doc.ref, { isPrimary: false });
+                if (doc.data().isPrimary) {
+                    batch.update(doc.ref, { isPrimary: false });
+                }
             });
             await batch.commit();
         }
@@ -242,12 +237,14 @@ exports.addBankAccount = functions.https.onCall(async (data, context) => {
             .collection('bank_accounts')
             .add({
                 bankName: data.bankName,
-                accountNumber: data.accountNumber.slice(-4), // Only last 4 digits
+                accountNumber: data.accountNumber.slice(-4),
                 accountHolderName: data.accountHolderName,
                 routingNumber: data.routingNumber,
                 isPrimary: isPrimary,
                 createdAt: admin.firestore.FieldValue.serverTimestamp()
             });
+
+        console.log('Bank account added successfully:', docRef.id);
 
         return {
             id: docRef.id,
@@ -258,7 +255,6 @@ exports.addBankAccount = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('internal', error.message);
     }
 });
-
 // ==========================================
 // DELETE BANK ACCOUNT
 // ==========================================

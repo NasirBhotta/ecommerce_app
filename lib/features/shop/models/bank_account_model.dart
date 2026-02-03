@@ -30,7 +30,6 @@ class BankAccountModel {
       'accountHolderName': accountHolderName,
       'routingNumber': routingNumber,
       'isPrimary': isPrimary,
-      'createdAt': createdAt ?? FieldValue.serverTimestamp(),
     };
   }
 

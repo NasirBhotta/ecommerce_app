@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:ecommerce_app/data/repositories/auth_repo.dart';
 import 'package:ecommerce_app/features/shop/models/bank_account_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 
 class BankAccountRepository extends GetxController {
@@ -9,6 +10,7 @@ class BankAccountRepository extends GetxController {
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseFunctions _functions = FirebaseFunctions.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<List<BankAccountModel>> fetchBankAccounts() async {
     try {
@@ -21,6 +23,7 @@ class BankAccountRepository extends GetxController {
               .doc(userId)
               .collection('bank_accounts')
               .get();
+
       return result.docs
           .map(
             (documentSnapshot) =>
@@ -34,17 +37,51 @@ class BankAccountRepository extends GetxController {
 
   Future<String> addBankAccount(BankAccountModel bankAccount) async {
     try {
-      final userId = AuthenticationRepository.instance.userId;
-      if (userId.isEmpty) throw 'User information not found';
+      // Get current user from FirebaseAuth directly
+      final currentUser = FirebaseAuth.instance.currentUser;
 
-      // Call Cloud Function to securely add bank account to Stripe & Firestore
+      if (currentUser == null) {
+        throw 'You must be signed in to add a bank account. Please log in again.';
+      }
+
+      print("Current user UID: ${currentUser.uid}");
+      print("Current user email: ${currentUser.email}");
+
+      // Force token refresh to ensure it's valid
+      await currentUser.getIdToken(true);
+      print("Token refreshed successfully");
+
+      // Call Cloud Function
       final callable = _functions.httpsCallable('addBankAccount');
-      final result = await callable.call(bankAccount.toJson());
+
+      final data = {
+        'bankName': bankAccount.bankName,
+        'accountNumber': bankAccount.accountNumber,
+        'accountHolderName': bankAccount.accountHolderName,
+        'routingNumber': bankAccount.routingNumber,
+      };
+
+      print("Calling Cloud Function with data: $data");
+
+      final result = await callable.call(data);
+
+      print("Cloud Function result: ${result.data}");
+
       return result.data['id'] ?? '';
     } on FirebaseFunctionsException catch (e) {
+      print("FirebaseFunctionsException:");
+      print("Code: ${e.code}");
+      print("Message: ${e.message}");
+      print("Details: ${e.details}");
+
+      if (e.code == 'unauthenticated') {
+        throw 'Authentication failed. Please log in again and try.';
+      }
+
       throw e.message ?? 'An error occurred while adding the bank account.';
     } catch (e) {
-      throw 'Something went wrong while saving Bank Account.';
+      print("General error: $e");
+      rethrow;
     }
   }
 
@@ -76,11 +113,5 @@ class BankAccountRepository extends GetxController {
     } catch (e) {
       throw 'Something went wrong while setting primary account.';
     }
-  }
-
-  Future<void> requestWithdrawal(double amount, String accountId) async {
-    // Deprecated: Logic moved to Cloud Functions (WalletRepository)
-    // Keeping empty or throwing error to ensure migration
-    throw 'Use WalletRepository.requestWithdrawal instead';
   }
 }
