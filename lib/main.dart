@@ -22,6 +22,7 @@ import 'package:ecommerce_app/features/shop/controllers/whishlist_controller.dar
 import 'package:ecommerce_app/firebase_options.dart';
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
 import 'package:ecommerce_app/util/theme/theme.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -45,6 +46,13 @@ void main() async {
     Get.put(AuthenticationRepository());
     Get.put(UserRepository());
   });
+
+  // await FirebaseAppCheck.instance.activate(
+  //   // For Android
+  //   androidProvider: AndroidProvider.debug,
+  //   // For iOS
+  //   appleProvider: AppleProvider.debug,
+  // );
   runApp(const EcommrceApp());
 }
 

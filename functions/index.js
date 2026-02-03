@@ -1,7 +1,14 @@
-const functions = require("firebase-functions");
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onRequest } = require("firebase-functions/v2/https");
+const { setGlobalOptions } = require("firebase-functions/v2");
 const admin = require("firebase-admin");
 const Stripe = require("stripe");
 require("dotenv").config();
+
+// Set global options
+setGlobalOptions({
+    region: "us-central1",
+});
 
 admin.initializeApp();
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
@@ -11,91 +18,56 @@ const db = admin.firestore();
 // HELPER FUNCTIONS
 // ==========================================
 
-/**
- * Verify user is authenticated
- */
-function requireAuth(context) {
-    if (!context.auth) {
-        throw new functions.https.HttpsError(
+function requireAuth(request) {
+    if (!request.auth) {
+        throw new HttpsError(
             'unauthenticated',
             'User must be authenticated to perform this action.'
         );
     }
-    return context.auth.uid;
+    return request.auth.uid;
 }
 
-/**
- * Validate amount is a positive number
- */
 function validateAmount(amount) {
     if (typeof amount !== 'number' || amount <= 0 || isNaN(amount)) {
-        throw new functions.https.HttpsError(
+        throw new HttpsError(
             'invalid-argument',
             'Amount must be a positive number.'
         );
     }
 }
 
-/**
- * Validate required fields exist
- */
 function validateRequired(data, fields) {
     const missing = fields.filter(field => !data[field]);
     if (missing.length > 0) {
-        throw new functions.https.HttpsError(
+        throw new HttpsError(
             'invalid-argument',
             `Missing required fields: ${missing.join(', ')}`
         );
     }
 }
 
-/**
- * Calculate wallet balance from ledger
- */
-async function getWalletBalance(userId) {
-    const ledgerSnapshot = await db
-        .collection('users')
-        .doc(userId)
-        .collection('wallet_ledger')
-        .where('status', '==', 'completed')
-        .get();
-
-    let balance = 0;
-    ledgerSnapshot.forEach(doc => {
-        const data = doc.data();
-        if (data.type === 'credit') {
-            balance += data.amount;
-        } else if (data.type === 'debit') {
-            balance -= data.amount;
-        }
-    });
-
-    return balance;
-}
-
 // ==========================================
 // CREATE STRIPE CUSTOMER
 // ==========================================
-exports.createStripeCustomer = functions.https.onCall(async (data, context) => {
-    const userId = requireAuth(context);
+exports.createStripeCustomer = onCall({ consumeAppCheckToken: false }, async (request) => {
+    const userId = requireAuth(request);
+    const data = request.data;
 
     try {
         validateRequired(data, ['email', 'name']);
 
-        // Check if customer already exists
         const userDoc = await db.collection('users').doc(userId).get();
         if (userDoc.exists && userDoc.data().stripeCustomerId) {
             return { customerId: userDoc.data().stripeCustomerId };
         }
 
-        // Create Stripe customer
         const customer = await stripe.customers.create({
             email: data.email,
             name: data.name,
             metadata: { firebaseUID: userId }
         });
 
-        // Save to Firestore
         await db.collection('users').doc(userId).update({
             stripeCustomerId: customer.id
         });
@@ -103,15 +75,16 @@ exports.createStripeCustomer = functions.https.onCall(async (data, context) => {
         return { customerId: customer.id };
     } catch (error) {
         console.error('Error creating Stripe customer:', error);
-        throw new functions.https.HttpsError('internal', error.message);
+        throw new HttpsError('internal', error.message);
     }
 });
 
 // ==========================================
 // CREATE SETUP INTENT (ADD CARD)
 // ==========================================
-exports.createSetupIntent = functions.https.onCall(async (data, context) => {
-    requireAuth(context);
+exports.createSetupIntent = onCall({ consumeAppCheckToken: false }, async (request) => {
+    requireAuth(request);
+    const data = request.data;
 
     try {
         validateRequired(data, ['customerId']);
@@ -124,22 +97,23 @@ exports.createSetupIntent = functions.https.onCall(async (data, context) => {
         return { clientSecret: setupIntent.client_secret };
     } catch (error) {
         console.error('Error creating setup intent:', error);
-        throw new functions.https.HttpsError('internal', error.message);
+        throw new HttpsError('internal', error.message);
     }
 });
 
 // ==========================================
 // CREATE PAYMENT INTENT
 // ==========================================
-exports.createPaymentIntent = functions.https.onCall(async (data, context) => {
-    const userId = requireAuth(context);
+exports.createPaymentIntent = onCall({ consumeAppCheckToken: false }, async (request) => {
+    const userId = requireAuth(request);
+    const data = request.data;
 
     try {
         validateRequired(data, ['amount', 'customerId', 'paymentMethodId']);
         validateAmount(data.amount);
 
         const paymentIntent = await stripe.paymentIntents.create({
-            amount: Math.round(data.amount * 100), // Convert to cents
+            amount: Math.round(data.amount * 100),
             currency: 'usd',
             customer: data.customerId,
             payment_method: data.paymentMethodId,
@@ -158,15 +132,16 @@ exports.createPaymentIntent = functions.https.onCall(async (data, context) => {
         };
     } catch (error) {
         console.error('Error creating payment intent:', error);
-        throw new functions.https.HttpsError('internal', error.message);
+        throw new HttpsError('internal', error.message);
     }
 });
 
 // ==========================================
 // GET PAYMENT METHODS
 // ==========================================
-exports.getPaymentMethods = functions.https.onCall(async (data, context) => {
-    requireAuth(context);
+exports.getPaymentMethods = onCall({ consumeAppCheckToken: false }, async (request) => {
+    requireAuth(request);
+    const data = request.data;
 
     try {
         validateRequired(data, ['customerId']);
@@ -187,30 +162,45 @@ exports.getPaymentMethods = functions.https.onCall(async (data, context) => {
         };
     } catch (error) {
         console.error('Error fetching payment methods:', error);
-        throw new functions.https.HttpsError('internal', error.message);
+        throw new HttpsError('internal', error.message);
     }
 });
 
 // ==========================================
 // DELETE PAYMENT METHOD
 // ==========================================
+exports.deletePaymentMethod = onCall({ consumeAppCheckToken: false }, async (request) => {
+    requireAuth(request);
+    const data = request.data;
+
+    try {
+        validateRequired(data, ['paymentMethodId']);
+
+        await stripe.paymentMethods.detach(data.paymentMethodId);
+        return { message: 'Payment method deleted successfully' };
+    } catch (error) {
+        console.error('Error deleting payment method:', error);
+        throw new HttpsError('internal', error.message);
+    }
+});
+
 // ==========================================
 // ADD BANK ACCOUNT
 // ==========================================
-exports.addBankAccount = functions.https.onCall(async (data, context) => {
-    // Fixed logging - don't stringify context directly
-    console.log('addBankAccount called');
-    console.log('Auth UID:', context.auth?.uid);
-    console.log('Auth Token:', context.auth?.token);
-    console.log('Data received:', data);
+exports.addBankAccount = onCall({ consumeAppCheckToken: false }, async (request) => {
+    console.log('=== addBankAccount called ===');
+    console.log('Auth present:', !!request.auth);
+    console.log('Auth UID:', request.auth?.uid);
 
-    const userId = requireAuth(context);
-    console.log('User ID:', userId);
+    const userId = requireAuth(request);
+    const data = request.data;
+
+    console.log('Authenticated user ID:', userId);
+    console.log('Data received:', data);
 
     try {
         validateRequired(data, ['bankName', 'accountNumber', 'accountHolderName', 'routingNumber']);
 
-        // Check if this is the first bank account
         const accountsSnapshot = await db
             .collection('users')
             .doc(userId)
@@ -219,7 +209,6 @@ exports.addBankAccount = functions.https.onCall(async (data, context) => {
 
         const isPrimary = accountsSnapshot.empty;
 
-        // If not primary, unset other primary accounts if needed
         if (!isPrimary) {
             const batch = db.batch();
             accountsSnapshot.forEach(doc => {
@@ -230,7 +219,6 @@ exports.addBankAccount = functions.https.onCall(async (data, context) => {
             await batch.commit();
         }
 
-        // Add new bank account (store only last 4 digits)
         const docRef = await db
             .collection('users')
             .doc(userId)
@@ -252,19 +240,25 @@ exports.addBankAccount = functions.https.onCall(async (data, context) => {
         };
     } catch (error) {
         console.error('Error adding bank account:', error);
-        throw new functions.https.HttpsError('internal', error.message);
+
+        if (error instanceof HttpsError) {
+            throw error;
+        }
+
+        throw new HttpsError('internal', error.message);
     }
 });
+
 // ==========================================
 // DELETE BANK ACCOUNT
 // ==========================================
-exports.deleteBankAccount = functions.https.onCall(async (data, context) => {
-    const userId = requireAuth(context);
+exports.deleteBankAccount = onCall({ consumeAppCheckToken: false }, async (request) => {
+    const userId = requireAuth(request);
+    const data = request.data;
 
     try {
         validateRequired(data, ['accountId']);
 
-        // Delete from Firestore
         await db
             .collection('users')
             .doc(userId)
@@ -272,7 +266,6 @@ exports.deleteBankAccount = functions.https.onCall(async (data, context) => {
             .doc(data.accountId)
             .delete();
 
-        // If this was primary, make another account primary
         const remainingAccounts = await db
             .collection('users')
             .doc(userId)
@@ -285,7 +278,6 @@ exports.deleteBankAccount = functions.https.onCall(async (data, context) => {
             );
 
             if (!hasPrimary) {
-                // Set first account as primary
                 await remainingAccounts.docs[0].ref.update({
                     isPrimary: true
                 });
@@ -295,30 +287,28 @@ exports.deleteBankAccount = functions.https.onCall(async (data, context) => {
         return { message: 'Bank account deleted successfully' };
     } catch (error) {
         console.error('Error deleting bank account:', error);
-        throw new functions.https.HttpsError('internal', error.message);
+        throw new HttpsError('internal', error.message);
     }
 });
 
 // ==========================================
 // SET PRIMARY BANK ACCOUNT
 // ==========================================
-exports.setPrimaryBankAccount = functions.https.onCall(async (data, context) => {
-    const userId = requireAuth(context);
+exports.setPrimaryBankAccount = onCall({ consumeAppCheckToken: false }, async (request) => {
+    const userId = requireAuth(request);
+    const data = request.data;
 
     try {
         validateRequired(data, ['accountId']);
 
-        // Use batch to update multiple documents atomically
         const batch = db.batch();
 
-        // Get all bank accounts
         const accountsSnapshot = await db
             .collection('users')
             .doc(userId)
             .collection('bank_accounts')
             .get();
 
-        // Set all to non-primary except the selected one
         accountsSnapshot.forEach(doc => {
             batch.update(doc.ref, { isPrimary: doc.id === data.accountId });
         });
@@ -328,23 +318,22 @@ exports.setPrimaryBankAccount = functions.https.onCall(async (data, context) => 
         return { message: 'Primary account updated successfully' };
     } catch (error) {
         console.error('Error setting primary account:', error);
-        throw new functions.https.HttpsError('internal', error.message);
+        throw new HttpsError('internal', error.message);
     }
 });
 
 // ==========================================
 // REQUEST WITHDRAWAL (PAYOUT)
 // ==========================================
-exports.requestWithdrawal = functions.https.onCall(async (data, context) => {
-    const userId = requireAuth(context);
+exports.requestWithdrawal = onCall({ consumeAppCheckToken: false }, async (request) => {
+    const userId = requireAuth(request);
+    const data = request.data;
 
     try {
         validateRequired(data, ['amount', 'bankAccountId']);
         validateAmount(data.amount);
 
-        // Use Firestore transaction for atomic balance check and withdrawal
         return await db.runTransaction(async (transaction) => {
-            // Check wallet balance
             const ledgerSnapshot = await transaction.get(
                 db.collection('users')
                     .doc(userId)
@@ -363,13 +352,12 @@ exports.requestWithdrawal = functions.https.onCall(async (data, context) => {
             });
 
             if (data.amount > balance) {
-                throw new functions.https.HttpsError(
+                throw new HttpsError(
                     'failed-precondition',
                     `Insufficient balance. Available: $${balance.toFixed(2)}`
                 );
             }
 
-            // Get bank account details
             const bankAccountDoc = await transaction.get(
                 db.collection('users')
                     .doc(userId)
@@ -378,7 +366,7 @@ exports.requestWithdrawal = functions.https.onCall(async (data, context) => {
             );
 
             if (!bankAccountDoc.exists) {
-                throw new functions.https.HttpsError(
+                throw new HttpsError(
                     'not-found',
                     'Bank account not found.'
                 );
@@ -386,7 +374,6 @@ exports.requestWithdrawal = functions.https.onCall(async (data, context) => {
 
             const bankAccount = bankAccountDoc.data();
 
-            // Create withdrawal entry in ledger
             const ledgerRef = db
                 .collection('users')
                 .doc(userId)
@@ -408,8 +395,6 @@ exports.requestWithdrawal = functions.https.onCall(async (data, context) => {
                 balance: balance - data.amount
             };
         }).then(async (result) => {
-            // After transaction succeeds, update status to completed
-            // In production, you would create a Stripe payout here
             await db
                 .collection('users')
                 .doc(userId)
@@ -424,17 +409,17 @@ exports.requestWithdrawal = functions.https.onCall(async (data, context) => {
         });
     } catch (error) {
         console.error('Error processing withdrawal:', error);
-        if (error.code) {
-            throw error; // Re-throw HttpsError
+        if (error instanceof HttpsError) {
+            throw error;
         }
-        throw new functions.https.HttpsError('internal', error.message);
+        throw new HttpsError('internal', error.message);
     }
 });
 
 // ==========================================
 // STRIPE WEBHOOK
 // ==========================================
-exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
+exports.stripeWebhook = onRequest(async (req, res) => {
     const sig = req.headers['stripe-signature'];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -451,7 +436,6 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
-    // Handle different event types
     try {
         switch (event.type) {
             case 'payment_intent.succeeded':
@@ -498,14 +482,13 @@ async function handlePaymentSuccess(paymentIntent) {
             return;
         }
 
-        // Add credit to wallet ledger
         await db
             .collection('users')
             .doc(userId)
             .collection('wallet_ledger')
             .add({
                 type: 'credit',
-                amount: paymentIntent.amount / 100, // Convert from cents
+                amount: paymentIntent.amount / 100,
                 description: 'Payment received',
                 status: 'completed',
                 timestamp: admin.firestore.FieldValue.serverTimestamp(),
@@ -520,13 +503,11 @@ async function handlePaymentSuccess(paymentIntent) {
 
 async function handlePaymentFailure(paymentIntent) {
     console.error('Payment failed:', paymentIntent.id);
-    // Implement notification logic
 }
 
 async function handlePayoutFailure(payout) {
     console.error('Payout failed:', payout.id);
 
-    // Find and mark ledger entries as failed
     const ledgerSnapshot = await db
         .collectionGroup('wallet_ledger')
         .where('status', '==', 'pending')
