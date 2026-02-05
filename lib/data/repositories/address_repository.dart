@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ecommerce_app/data/repositories/auth_repo.dart';
 import 'package:ecommerce_app/features/shop/models/address_model.dart';
 import 'package:get/get.dart';
 // import '../authentication/authentication_repository.dart'; // Ensure you import your Auth Repo
@@ -7,7 +8,8 @@ class AddressRepository extends GetxController {
   static AddressRepository get instance => Get.find();
 
   final _db = FirebaseFirestore.instance;
-
+  final _authRepo = AuthenticationRepository.instance;
+  String get userId => _authRepo.authUser?.uid ?? '';
   // Fetch all addresses for the specific user
   Future<List<AddressModel>> fetchUserAddresses() async {
     try {
@@ -22,11 +24,11 @@ class AddressRepository extends GetxController {
       // if (userId == null || userId.isEmpty) throw 'Unable to find user information.';
 
       // Placeholder for userId retrieval logic:
-      String userId = 'CURRENT_USER_ID_HERE';
+      String userId = this.userId;
 
       final result =
           await _db
-              .collection('Users')
+              .collection('users')
               .doc(userId)
               .collection('Addresses')
               .get();
@@ -43,7 +45,7 @@ class AddressRepository extends GetxController {
     try {
       String userId = 'CURRENT_USER_ID_HERE'; // Replace with actual Auth logic
       await _db
-          .collection('Users')
+          .collection('users')
           .doc(userId)
           .collection('Addresses')
           .doc(addressId)
@@ -56,9 +58,9 @@ class AddressRepository extends GetxController {
   // Update Address
   Future<void> updateAddress(AddressModel address) async {
     try {
-      String userId = 'CURRENT_USER_ID_HERE'; // Replace with actual Auth logic
+      String userId = this.userId; // Replace with actual Auth logic
       await _db
-          .collection('Users')
+          .collection('users')
           .doc(userId)
           .collection('Addresses')
           .doc(address.id)
@@ -71,9 +73,9 @@ class AddressRepository extends GetxController {
   // Add new Address
   Future<String> addAddress(AddressModel address) async {
     try {
-      String userId = 'CURRENT_USER_ID_HERE'; // Replace with actual Auth logic
+      String userId = this.userId; // Replace with actual Auth logic
       final currentAddress = await _db
-          .collection('Users')
+          .collection('users')
           .doc(userId)
           .collection('Addresses')
           .add(address.toJson());
@@ -86,9 +88,9 @@ class AddressRepository extends GetxController {
   // Delete Address
   Future<void> deleteAddress(String addressId) async {
     try {
-      String userId = 'CURRENT_USER_ID_HERE'; // Replace with actual Auth logic
+      String userId = this.userId; // Replace with actual Auth logic
       await _db
-          .collection('Users')
+          .collection('users')
           .doc(userId)
           .collection('Addresses')
           .doc(addressId)
