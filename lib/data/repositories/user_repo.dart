@@ -214,14 +214,33 @@ class UserRepository extends GetxController {
     }
   }
 
+
   /* ----------------------- Settings ----------------------- */
 
-  /// Update privacy settings
+  /// Update privacy settings (Replace entire map)
   Future<void> updatePrivacySettings(Map<String, dynamic> settings) async {
     try {
       await updateSingleField('privacySettings', settings);
     } catch (e) {
       throw 'Failed to update privacy settings: ${e.toString()}';
+    }
+  }
+
+  /// Update a specific setting using dot notation (e.g. 'privacySettings.showOnlineStatus')
+  /// This prevents overwriting the entire map when changing just one value.
+  Future<void> patchSpecificSetting(String mapName, String key, dynamic value) async {
+     try {
+      // Create the dot-notation key key like 'privacySettings.showOnlineStatus'
+      final fieldPath = '$mapName.$key';
+      
+      await _db.collection('users').doc(userId).update({
+        fieldPath: value,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } on FirebaseException catch (e) {
+      throw e.message ?? 'Failed to update setting';
+    } catch (e) {
+      throw 'Something went wrong while updating setting.';
     }
   }
 

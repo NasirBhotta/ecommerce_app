@@ -1,4 +1,4 @@
-import 'package:ecommerce_app/features/shop/controllers/account_privact_contoller.dart';
+import 'package:ecommerce_app/features/shop/controllers/account_privacy_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

@@ -6,7 +6,7 @@ import 'package:ecommerce_app/features/authentication/controllers/auth/forgot_pa
 import 'package:ecommerce_app/features/authentication/controllers/auth/login_controller.dart';
 import 'package:ecommerce_app/features/authentication/controllers/auth/reset_pass_controller.dart';
 import 'package:ecommerce_app/features/authentication/controllers/auth/signup_controller.dart';
-import 'package:ecommerce_app/features/shop/controllers/account_privact_contoller.dart';
+import 'package:ecommerce_app/features/shop/controllers/account_privacy_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/addresses_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/bank_account_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/cart_controller.dart';
