@@ -50,10 +50,7 @@ class NotificationRepository extends GetxController {
         .doc(userId)
         .collection('notifications')
         .doc(notificationId)
-        .update({
-          'isRead': true,
-          'readAt': FieldValue.serverTimestamp(),
-        });
+        .update({'isRead': true, 'readAt': FieldValue.serverTimestamp()});
   }
 
   Future<void> markAllAsRead() async {
@@ -118,8 +115,11 @@ class NotificationRepository extends GetxController {
     final userId = _userId;
     if (userId.isEmpty) return;
 
-    final tokenRef =
-        _db.collection('users').doc(userId).collection('fcm_tokens').doc(token);
+    final tokenRef = _db
+        .collection('users')
+        .doc(userId)
+        .collection('fcm_tokens')
+        .doc(token);
 
     await tokenRef.set({
       'token': token,

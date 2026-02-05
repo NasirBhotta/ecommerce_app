@@ -158,4 +158,32 @@ class NotificationService extends GetxService {
   void _handleOpenedMessage(RemoteMessage message) {
     // Hook into app navigation if needed using message.data
   }
+
+  Future<void> testLocalNotification() async {
+    const androidDetails = AndroidNotificationDetails(
+      'default',
+      'Notifications',
+      channelDescription: 'Test notifications',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentSound: true,
+      presentBadge: true,
+    );
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _localNotifications.show(
+      999, // test id
+      'Test Notification',
+      'Local notifications are working 🎉',
+      details,
+    );
+  }
 }
