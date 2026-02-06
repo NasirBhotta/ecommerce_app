@@ -1,4 +1,5 @@
 import 'package:ecommerce_app/features/shop/models/cart_item.dart';
+import 'package:ecommerce_app/features/shop/screens/checkout/checkout.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -180,13 +181,7 @@ class CartController extends GetxController {
       return;
     }
 
-    Get.snackbar(
-      'Checkout',
-      'Proceeding to checkout...',
-      snackPosition: SnackPosition.BOTTOM,
-    );
-    // Navigate to checkout screen
-    // Get.toNamed('/checkout');
+    Get.to(() => const CheckoutScreen()); 
   }
 
   // Apply coupon

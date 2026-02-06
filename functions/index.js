@@ -416,6 +416,76 @@ exports.requestWithdrawal = onCall({ consumeAppCheckToken: false }, async (reque
     }
 });
 
+// ==========================================
+// PAY WITH WALLET
+// ==========================================
+exports.payWithWallet = onCall({ consumeAppCheckToken: false }, async (request) => {
+    const userId = requireAuth(request);
+    const data = request.data;
+
+    try {
+        validateRequired(data, ['amount', 'orderId']);
+        validateAmount(data.amount);
+
+        return await db.runTransaction(async (transaction) => {
+            // 1. Calculate current balance
+            const ledgerSnapshot = await transaction.get(
+                db.collection('users')
+                    .doc(userId)
+                    .collection('wallet_ledger')
+                    .where('status', '==', 'completed')
+            );
+
+            let balance = 0;
+            ledgerSnapshot.forEach(doc => {
+                const ledgerData = doc.data();
+                if (ledgerData.type === 'credit') {
+                    balance += ledgerData.amount;
+                } else if (ledgerData.type === 'debit') {
+                    balance -= ledgerData.amount;
+                }
+            });
+
+            // 2. Check sufficiency
+            if (data.amount > balance) {
+                throw new HttpsError(
+                    'failed-precondition',
+                    `Insufficient wallet balance. Available: $${balance.toFixed(2)}`
+                );
+            }
+
+            // 3. Create debit transaction
+            const ledgerRef = db
+                .collection('users')
+                .doc(userId)
+                .collection('wallet_ledger')
+                .doc();
+
+            transaction.set(ledgerRef, {
+                type: 'debit',
+                amount: data.amount,
+                description: `Payment for Order #${data.orderId}`,
+                status: 'completed',
+                timestamp: admin.firestore.FieldValue.serverTimestamp(),
+                orderId: data.orderId,
+                referenceId: ledgerRef.id
+            });
+
+            return {
+                success: true,
+                transactionId: ledgerRef.id,
+                remainingBalance: balance - data.amount
+            };
+        });
+    } catch (error) {
+        console.error('Error processing wallet payment:', error);
+        if (error instanceof HttpsError) {
+            throw error;
+        }
+        throw new HttpsError('internal', error.message);
+    }
+});
+
 
 // ==========================================
 // SEND PUSH NOTIFICATION ON CREATE
