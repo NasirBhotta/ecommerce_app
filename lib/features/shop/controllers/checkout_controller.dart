@@ -43,33 +43,42 @@ class CheckoutController extends GetxController {
       final user = AuthenticationRepository.instance.authUser;
       if (user == null) return;
 
+      final email = user.email;
+      final name =
+          (user.displayName != null && user.displayName!.trim().isNotEmpty)
+              ? user.displayName!.trim()
+              : (email != null && email.contains('@')
+                  ? email.split('@').first
+                  : 'User');
+
+      if (email == null || email.trim().isEmpty) {
+        throw 'Email not found for Stripe customer creation';
+      }
+
       // We need to get the Stripe Customer ID first.
       // This is usually stored in the User document.
       // Assuming we have logic to get it, or we trigger 'createStripeCustomer' if null
       // For now, let's assume the helper logic exists or we call the function directly.
-      
-      final customerResult = await _functions.httpsCallable('createStripeCustomer').call({
-        'email': user.email,
-        'name': user.displayName ?? 'User',
-      });
+
+      final customerResult = await _functions
+          .httpsCallable('createStripeCustomer')
+          .call({'email': email, 'name': name});
       final customerId = customerResult.data['customerId'];
 
       final result = await _functions.httpsCallable('getPaymentMethods').call({
-         'customerId': customerId,
+        'customerId': customerId,
       });
 
       final List<dynamic> data = result.data['paymentMethods'];
       savedCards.assignAll(data.cast<Map<String, dynamic>>());
-      
+
       if (savedCards.isNotEmpty) {
         selectedPaymentMethodId.value = savedCards.first['id'];
       }
-
     } catch (e) {
       print('Error fetching cards: $e');
     }
   }
-
 
   Future<void> processPayment(BuildContext context) async {
     try {
@@ -87,18 +96,21 @@ class CheckoutController extends GetxController {
         status: 'Processing',
         totalAmount: amount,
         orderDate: DateTime.now(),
-        paymentMethod: selectedPaymentMethod.value == PaymentMethod.wallet ? 'Wallet' : 'Credit Card',
+        paymentMethod:
+            selectedPaymentMethod.value == PaymentMethod.wallet
+                ? 'Wallet'
+                : 'Credit Card',
         items: List<Map<String, dynamic>>.from(_cartController.cartItems),
         deliveryDate: DateTime.now().add(const Duration(days: 3)), // Estimate
       );
-      
+
       // Temporarily use a random ID for logic, but Firestore will assign real one
       // Actually, for wallet payment we need orderId passed to function.
       // We can generate one or let Firestore generate.
       // Let's create the order doc first with 'Pending Payment' status?
       // Or just pass a reference ID. Let's use timestamp for now as Ref.
-      final String orderRefId = DateTime.now().millisecondsSinceEpoch.toString();
-
+      final String orderRefId =
+          DateTime.now().millisecondsSinceEpoch.toString();
 
       if (selectedPaymentMethod.value == PaymentMethod.wallet) {
         await _payWithWallet(amount, orderRefId);
@@ -107,7 +119,10 @@ class CheckoutController extends GetxController {
       }
 
       // 2. Save Order to Firestore (Only if payment succeeded)
-      await _orderRepository.saveOrder(newOrder, AuthenticationRepository.instance.userId);
+      await _orderRepository.saveOrder(
+        newOrder,
+        AuthenticationRepository.instance.userId,
+      );
 
       // 3. Clear Cart
       _cartController.cartItems.clear(); // Clear directly or use clearCart()
@@ -115,15 +130,15 @@ class CheckoutController extends GetxController {
       // 4. Success Navigation
       Get.offAllNamed('/navigation'); // Or to Order Success Screen
       Get.snackbar(
-        'Success', 
+        'Success',
         'Order placed successfully!',
         backgroundColor: Colors.green.withOpacity(0.1),
         colorText: Colors.green,
       );
-
     } catch (e) {
+      print('Payment error: $e');
       Get.snackbar(
-        'Error', 
+        'Error',
         e.toString(),
         backgroundColor: Colors.red.withOpacity(0.1),
         colorText: Colors.red,
@@ -140,10 +155,7 @@ class CheckoutController extends GetxController {
     }
 
     final callable = _functions.httpsCallable('payWithWallet');
-    final result = await callable.call({
-      'amount': amount,
-      'orderId': orderId,
-    });
+    final result = await callable.call({'amount': amount, 'orderId': orderId});
 
     if (result.data['success'] != true) {
       throw 'Wallet payment failed';
@@ -153,34 +165,45 @@ class CheckoutController extends GetxController {
   Future<void> _payWithCard(double amount, String orderId) async {
     // 1. Get Customer ID
     final user = AuthenticationRepository.instance.authUser;
-    final customerResult = await _functions.httpsCallable('createStripeCustomer').call({
-        'email': user?.email,
-        'name': user?.displayName ?? 'User',
-    });
+    final email = user?.email;
+    final name =
+        (user?.displayName != null && user!.displayName!.trim().isNotEmpty)
+            ? user.displayName!.trim()
+            : (email != null && email.contains('@')
+                ? email.split('@').first
+                : 'User');
+
+    if (email == null || email.trim().isEmpty) {
+      throw 'Email not found for Stripe customer creation';
+    }
+
+    final customerResult = await _functions
+        .httpsCallable('createStripeCustomer')
+        .call({'email': email, 'name': name});
     final customerId = customerResult.data['customerId'];
 
-    // 2. Create Payment Intent
-    final intentResult = await _functions.httpsCallable('createPaymentIntent').call({
-      'amount': amount,
-      'customerId': customerId,
-      'paymentMethodId': selectedPaymentMethodId.value, // Use selected saved card or new
-      'metadata': {'orderId': orderId},
-    });
+    // 2. Create Payment Intent for PaymentSheet
+    final intentResult = await _functions
+        .httpsCallable('createPaymentIntent')
+        .call({
+          'amount': amount,
+          'customerId': customerId,
+          'metadata': {'orderId': orderId},
+        });
 
     final clientSecret = intentResult.data['clientSecret'];
+    final ephemeralKey = intentResult.data['ephemeralKey'];
 
-    // 3. Confirm Payment (Frontend)
-    // If automatic confirmation at server (off_session: true, confirm: true) succeeded:
-    if (intentResult.data['status'] == 'succeeded') {
-       return; // Done
-    } 
-
-    // Used if we need 3DS or if manual confirmation is needed
-    await Stripe.instance.confirmPayment(
-      paymentIntentClientSecret: clientSecret,
-      data: const PaymentMethodParams.card(
-        paymentMethodData: PaymentMethodData(),
-      ), 
+    // 3. Present PaymentSheet (handles saved cards or new card)
+    await Stripe.instance.initPaymentSheet(
+      paymentSheetParameters: SetupPaymentSheetParameters(
+        paymentIntentClientSecret: clientSecret,
+        customerId: customerId,
+        customerEphemeralKeySecret: ephemeralKey,
+        merchantDisplayName: 'Ecommerce App',
+      ),
     );
+
+    await Stripe.instance.presentPaymentSheet();
   }
 }
