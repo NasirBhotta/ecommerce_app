@@ -1,4 +1,5 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { onRequest } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2");
 const admin = require("firebase-admin");
@@ -102,33 +103,37 @@ exports.createSetupIntent = onCall({ consumeAppCheckToken: false }, async (reque
 });
 
 // ==========================================
-// CREATE PAYMENT INTENT
+// CREATE PAYMENT INTENT (PaymentSheet)
 // ==========================================
 exports.createPaymentIntent = onCall({ consumeAppCheckToken: false }, async (request) => {
     const userId = requireAuth(request);
     const data = request.data;
 
     try {
-        validateRequired(data, ['amount', 'customerId', 'paymentMethodId']);
+        validateRequired(data, ['amount', 'customerId']);
         validateAmount(data.amount);
 
         const paymentIntent = await stripe.paymentIntents.create({
             amount: Math.round(data.amount * 100),
             currency: 'usd',
             customer: data.customerId,
-            payment_method: data.paymentMethodId,
-            off_session: true,
-            confirm: true,
+            automatic_payment_methods: { enabled: true },
             metadata: {
                 firebaseUID: userId,
                 ...data.metadata
             }
         });
 
+        const ephemeralKey = await stripe.ephemeralKeys.create(
+            { customer: data.customerId },
+            { apiVersion: '2023-10-16' }
+        );
+
         return {
             clientSecret: paymentIntent.client_secret,
-            status: paymentIntent.status,
-            id: paymentIntent.id
+            id: paymentIntent.id,
+            customerId: data.customerId,
+            ephemeralKey: ephemeralKey.secret
         };
     } catch (error) {
         console.error('Error creating payment intent:', error);
@@ -486,92 +491,108 @@ exports.payWithWallet = onCall({ consumeAppCheckToken: false }, async (request) 
     }
 });
 
+// ==========================================
+// SEND PUSH NOTIFICATION ON CREATE (V2)
+// ==========================================
 
-// ==========================================
-// SEND PUSH NOTIFICATION ON CREATE
-// ==========================================
-exports.sendNotificationOnCreate = functions.firestore
-    .document('users/{userId}/notifications/{notificationId}')
-    .onCreate(async (snap, context) => {
-        const data = snap.data() || {};
-        const userId = context.params.userId;
+exports.sendNotificationOnCreate = onDocumentCreated(
+    "users/{userId}/notifications/{notificationId}",
+    async (event) => {
+
+        const snap = event.data;
+        if (!snap) return;
+
+        const data = snap.data();
+        const userId = event.params.userId;
 
         try {
-            const userDoc = await db.collection('users').doc(userId).get();
+
+            const userDoc = await db.collection("users").doc(userId).get();
             const userData = userDoc.exists ? userDoc.data() : {};
-            const settings = (userData && userData.notificationSettings) || {};
+            const settings = userData.notificationSettings || {};
 
-            if (settings.pushNotifications === false) {
-                return null;
-            }
+            // Check master setting
+            if (settings.pushNotifications === false) return;
 
-            const type = data.type || 'system';
+            const type = data.type || "system";
+
             const typeSettingMap = {
-                order: 'orderUpdates',
-                delivery: 'orderUpdates',
-                payment: 'orderUpdates',
-                promotion: 'promotionalOffers',
-                account: 'accountActivity',
-                app: 'appUpdates',
-                system: 'appUpdates',
-                new_arrival: 'newArrivals'
+                order: "orderUpdates",
+                delivery: "orderUpdates",
+                payment: "orderUpdates",
+                promotion: "promotionalOffers",
+                account: "accountActivity",
+                app: "appUpdates",
+                system: "appUpdates",
+                new_arrival: "newArrivals",
             };
 
             const typeSetting = typeSettingMap[type];
-            if (typeSetting && settings[typeSetting] === false) {
-                return null;
-            }
 
+            if (typeSetting && settings[typeSetting] === false) return;
+
+            // Get FCM tokens
             const tokensSnapshot = await db
-                .collection('users')
+                .collection("users")
                 .doc(userId)
-                .collection('fcm_tokens')
+                .collection("fcm_tokens")
                 .get();
 
-            if (tokensSnapshot.empty) {
-                return null;
-            }
+            if (tokensSnapshot.empty) return;
 
-            const tokens = tokensSnapshot.docs.map(doc => doc.id);
+            const tokens = tokensSnapshot.docs.map((doc) => doc.id);
 
+            // Prepare data payload
             const dataPayload = {};
-            if (data.data && typeof data.data === 'object') {
-                Object.keys(data.data).forEach(key => {
+
+            if (data.data && typeof data.data === "object") {
+                Object.keys(data.data).forEach((key) => {
                     dataPayload[key] = String(data.data[key]);
                 });
             }
-            dataPayload.notificationId = context.params.notificationId;
+
+            dataPayload.notificationId = event.params.notificationId;
             dataPayload.type = type;
 
             const message = {
                 tokens,
+
                 notification: {
-                    title: data.title || 'Notification',
-                    body: data.body || ''
+                    title: data.title || "Notification",
+                    body: data.body || "",
                 },
+
                 data: dataPayload,
+
                 android: {
                     notification: {
-                        channelId: 'default'
-                    }
+                        channelId: "default",
+                    },
                 },
+
                 apns: {
                     payload: {
                         aps: {
-                            sound: 'default'
-                        }
-                    }
-                }
+                            sound: "default",
+                        },
+                    },
+                },
             };
 
-            const response = await admin.messaging().sendEachForMulticast(message);
+            const response =
+                await admin.messaging().sendEachForMulticast(message);
 
+            // Cleanup invalid tokens
             const invalidTokens = [];
+
             response.responses.forEach((result, index) => {
                 if (result.error) {
                     const code = result.error.code;
-                    if (code === 'messaging/registration-token-not-registered' ||
-                        code === 'messaging/invalid-registration-token') {
+
+                    if (
+                        code === "messaging/registration-token-not-registered" ||
+                        code === "messaging/invalid-registration-token"
+                    ) {
                         invalidTokens.push(tokens[index]);
                     }
                 }
@@ -579,23 +600,29 @@ exports.sendNotificationOnCreate = functions.firestore
 
             if (invalidTokens.length > 0) {
                 const batch = db.batch();
-                invalidTokens.forEach(token => {
+
+                invalidTokens.forEach((token) => {
                     const ref = db
-                        .collection('users')
+                        .collection("users")
                         .doc(userId)
-                        .collection('fcm_tokens')
+                        .collection("fcm_tokens")
                         .doc(token);
+
                     batch.delete(ref);
                 });
+
                 await batch.commit();
             }
 
-            return null;
+            return;
+
         } catch (error) {
-            console.error('Error sending notification:', error);
-            return null;
+            console.error("Error sending notification:", error);
+            return;
         }
-    });
+    }
+);
+
 
 // ==========================================
 // STRIPE WEBHOOK
