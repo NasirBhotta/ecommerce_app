@@ -242,7 +242,3 @@ class AddNewAddressScreen extends StatelessWidget {
     );
   }
 }
-
-
-
-/// screen completed
