@@ -1,4 +1,5 @@
 import 'package:ecommerce_app/features/shop/controllers/product_detail_controller.dart';
+import 'package:ecommerce_app/features/shop/models/product_model.dart';
 import 'package:ecommerce_app/util/constants/sized.dart';
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
 import 'package:flutter/material.dart';
@@ -6,15 +7,11 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 
 class ProductDetailScreen extends StatelessWidget {
-  final String productName;
-  final String price;
-  final String? discount;
+  final ProductModel product;
 
   const ProductDetailScreen({
     super.key,
-    required this.productName,
-    required this.price,
-    this.discount,
+    required this.product,
   });
 
   @override
@@ -63,15 +60,7 @@ class ProductDetailScreen extends StatelessWidget {
               child: Column(
                 children: [
                   // Main Image
-                  Expanded(
-                    child: Center(
-                      child: Icon(
-                        Icons.image,
-                        size: 150,
-                        color: BColors.grey.withValues(alpha: 0.3),
-                      ),
-                    ),
-                  ),
+                  Expanded(child: Center(child: _buildImage(product.imageUrl))),
 
                   // Variant Images
                   Container(
@@ -80,49 +69,66 @@ class ProductDetailScreen extends StatelessWidget {
                       horizontal: BSizes.paddingMd,
                     ),
                     child: Obx(
-                      () => Row(
-                        children: List.generate(
-                          4,
-                          (index) => GestureDetector(
-                            onTap: () => controller.selectImage(index),
-                            child: Container(
-                              width: 60,
-                              height: 60,
-                              margin: const EdgeInsets.only(
-                                right: BSizes.paddingSm,
-                              ),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(
-                                  BSizes.paddingSm,
+                      () {
+                        final images =
+                            product.images.isNotEmpty
+                                ? product.images
+                                : (product.imageUrl.isNotEmpty
+                                    ? [product.imageUrl]
+                                    : <String>[]);
+                        final count = images.isEmpty ? 4 : images.length;
+
+                        return Row(
+                          children: List.generate(
+                            count,
+                            (index) => GestureDetector(
+                              onTap: () => controller.selectImage(index),
+                              child: Container(
+                                width: 60,
+                                height: 60,
+                                margin: const EdgeInsets.only(
+                                  right: BSizes.paddingSm,
                                 ),
-                                border: Border.all(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(
+                                    BSizes.paddingSm,
+                                  ),
+                                  border: Border.all(
+                                    color:
+                                        controller.selectedImageIndex.value ==
+                                                index
+                                            ? BColors.primary
+                                            : BColors.grey.withValues(
+                                              alpha: 0.3,
+                                            ),
+                                    width:
+                                        controller.selectedImageIndex.value ==
+                                                index
+                                            ? 2
+                                            : 1,
+                                  ),
                                   color:
-                                      controller.selectedImageIndex.value ==
-                                              index
-                                          ? BColors.primary
-                                          : BColors.grey.withValues(alpha: 0.3),
-                                  width:
-                                      controller.selectedImageIndex.value ==
-                                              index
-                                          ? 2
-                                          : 1,
+                                      isDark
+                                          ? BColors.grey.withValues(alpha: 0.1)
+                                          : BColors.white,
                                 ),
-                                color:
-                                    isDark
-                                        ? BColors.grey.withValues(alpha: 0.1)
-                                        : BColors.white,
-                              ),
-                              child: Center(
-                                child: Icon(
-                                  Icons.image,
-                                  size: 30,
-                                  color: BColors.grey.withValues(alpha: 0.5),
+                                child: Center(
+                                  child:
+                                      images.isEmpty
+                                          ? Icon(
+                                            Icons.image,
+                                            size: 30,
+                                            color: BColors.grey.withValues(
+                                              alpha: 0.5,
+                                            ),
+                                          )
+                                          : _buildThumbnail(images[index]),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(height: BSizes.spaceBetweenItems),
@@ -158,7 +164,7 @@ class ProductDetailScreen extends StatelessWidget {
                   // Price with Discount
                   Row(
                     children: [
-                      if (discount != null)
+                      if (product.discountLabel != null)
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: BSizes.paddingSm,
@@ -171,7 +177,7 @@ class ProductDetailScreen extends StatelessWidget {
                             ),
                           ),
                           child: Text(
-                            discount!,
+                            product.discountLabel!,
                             style: Theme.of(
                               context,
                             ).textTheme.labelSmall!.apply(
@@ -182,7 +188,7 @@ class ProductDetailScreen extends StatelessWidget {
                         ),
                       const SizedBox(width: BSizes.paddingSm),
                       Text(
-                        price,
+                        product.priceLabel,
                         style: Theme.of(context).textTheme.headlineSmall!.apply(
                           color: BColors.primary,
                           fontWeightDelta: 2,
@@ -195,7 +201,7 @@ class ProductDetailScreen extends StatelessWidget {
 
                   // Product Name
                   Text(
-                    productName,
+                    product.name,
                     style: Theme.of(
                       context,
                     ).textTheme.titleLarge!.apply(fontWeightDelta: 1),
@@ -218,7 +224,9 @@ class ProductDetailScreen extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            'Nike',
+                            product.brandName.isNotEmpty
+                                ? product.brandName
+                                : 'Brand',
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           const SizedBox(width: 4),
@@ -457,5 +465,47 @@ class ProductDetailScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildImage(String url) {
+    if (url.isEmpty) {
+      return Icon(
+        Icons.image,
+        size: 150,
+        color: BColors.grey.withValues(alpha: 0.3),
+      );
+    }
+
+    if (url.startsWith('http')) {
+      return Image.network(
+        url,
+        fit: BoxFit.contain,
+        errorBuilder:
+            (_, __, ___) => Icon(
+              Icons.broken_image,
+              size: 150,
+              color: BColors.grey.withValues(alpha: 0.3),
+            ),
+      );
+    }
+
+    return Image.asset(url, fit: BoxFit.contain);
+  }
+
+  Widget _buildThumbnail(String url) {
+    if (url.startsWith('http')) {
+      return Image.network(
+        url,
+        fit: BoxFit.contain,
+        errorBuilder:
+            (_, __, ___) => Icon(
+              Icons.broken_image,
+              size: 30,
+              color: BColors.grey.withValues(alpha: 0.5),
+            ),
+      );
+    }
+
+    return Image.asset(url, fit: BoxFit.contain);
   }
 }

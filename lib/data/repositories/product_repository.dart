@@ -12,7 +12,9 @@ class ProductRepository extends GetxController {
   Box<ProductModel> get _productsBox => Hive.box<ProductModel>('products_box');
   Box get _metaBox => Hive.box('products_meta');
 
-  Future<List<ProductModel>> fetchAllProducts({bool forceRefresh = false}) async {
+  Future<List<ProductModel>> fetchAllProducts({
+    bool forceRefresh = false,
+  }) async {
     try {
       if (!forceRefresh) {
         final cached = _loadCachedProducts();
@@ -22,7 +24,10 @@ class ProductRepository extends GetxController {
       final snapshot = await _db.collection('products').get();
       final products =
           snapshot.docs
-              .map((documentSnapshot) => ProductModel.fromSnapshot(documentSnapshot))
+              .map(
+                (documentSnapshot) =>
+                    ProductModel.fromSnapshot(documentSnapshot),
+              )
               .toList();
       await _cacheProducts(products);
       return products;
@@ -50,7 +55,10 @@ class ProductRepository extends GetxController {
               .get();
       final products =
           snapshot.docs
-              .map((documentSnapshot) => ProductModel.fromSnapshot(documentSnapshot))
+              .map(
+                (documentSnapshot) =>
+                    ProductModel.fromSnapshot(documentSnapshot),
+              )
               .toList();
       await _cacheProducts(products, merge: true);
       return products;
@@ -77,7 +85,10 @@ class ProductRepository extends GetxController {
               .get();
       final products =
           snapshot.docs
-              .map((documentSnapshot) => ProductModel.fromSnapshot(documentSnapshot))
+              .map(
+                (documentSnapshot) =>
+                    ProductModel.fromSnapshot(documentSnapshot),
+              )
               .toList();
       await _cacheProducts(products, merge: true);
       return products;

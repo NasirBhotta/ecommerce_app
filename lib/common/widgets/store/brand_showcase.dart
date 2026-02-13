@@ -1,5 +1,6 @@
 import 'package:ecommerce_app/common/widgets/store/brand_card.dart';
 import 'package:ecommerce_app/common/widgets/store/product_image.dart';
+import 'package:ecommerce_app/features/shop/models/product_model.dart';
 import 'package:ecommerce_app/util/constants/sized.dart';
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +17,7 @@ class BBrandShowcase extends StatelessWidget {
 
   final String brandName;
   final int productCount;
-  final List<Map<String, String>> products;
+  final List<ProductModel> products;
   final bool verified;
   final VoidCallback? onBrandTap;
 
@@ -57,8 +58,8 @@ class BBrandShowcase extends StatelessWidget {
                       right: index < 2 ? BSizes.paddingSm : 0,
                     ),
                     child: BProductImageCard(
-                      imageUrl: products[index]['image'],
-                      discount: products[index]['discount'],
+                      imageUrl: products[index].imageUrl,
+                      discount: products[index].discountLabel,
                     ),
                   ),
                 ),

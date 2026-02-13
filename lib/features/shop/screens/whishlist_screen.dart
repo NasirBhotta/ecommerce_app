@@ -196,6 +196,8 @@ class WishlistScreen extends StatelessWidget {
                       price: product['price'],
                       discount: product['discount'],
                       imageUrl: product['image'],
+                      brandName: product['brand'],
+                      category: product['category'],
                       onTap: () {
                         // Navigate to product detail
                       },

@@ -10,6 +10,7 @@ import 'package:ecommerce_app/common/widgets/home/vertical_image_text.dart';
 import 'package:ecommerce_app/features/shop/controllers/cart_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/home_controller.dart';
 import 'package:ecommerce_app/features/shop/screens/cart.dart';
+import 'package:ecommerce_app/features/shop/models/product_model.dart';
 
 import 'package:ecommerce_app/util/constants/sized.dart';
 
@@ -266,16 +267,19 @@ class HomeScreen extends StatelessWidget {
                               mainAxisExtent: 288,
                             ),
                         itemBuilder: (_, index) {
-                          final product = filteredProducts[index];
+                          final ProductModel product = filteredProducts[index];
                           return BProductCardVertical(
-                            productId: product['id']!,
-                            productName: product['name']!,
-                            price: product['price']!,
-                            discount: product['discount'],
+                            productId: product.id,
+                            productName: product.name,
+                            price: product.priceLabel,
+                            discount: product.discountLabel,
+                            imageUrl: product.imageUrl,
+                            brandName: product.brandName,
+                            category: product.category,
                             onTap: () {
                               Get.snackbar(
                                 'Product',
-                                'You tapped on ${product['name']}',
+                                'You tapped on ${product.name}',
                                 snackPosition: SnackPosition.BOTTOM,
                                 backgroundColor: BColors.primary.withOpacity(
                                   0.8,
@@ -448,16 +452,19 @@ class HomeScreen extends StatelessWidget {
                             mainAxisExtent: 288,
                           ),
                       itemBuilder: (_, index) {
-                        final product = controller.allProducts[index];
+                        final ProductModel product = controller.allProducts[index];
                         return BProductCardVertical(
-                          productId: product['id']!,
-                          productName: product['name']!,
-                          price: product['price']!,
-                          discount: product['discount'],
+                          productId: product.id,
+                          productName: product.name,
+                          price: product.priceLabel,
+                          discount: product.discountLabel,
+                          imageUrl: product.imageUrl,
+                          brandName: product.brandName,
+                          category: product.category,
                           onTap: () {
                             Get.snackbar(
                               'Product',
-                              'You tapped on ${product['name']}',
+                              'You tapped on ${product.name}',
                               snackPosition: SnackPosition.BOTTOM,
                               backgroundColor: BColors.primary.withValues(
                                 alpha: 0.8,

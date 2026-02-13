@@ -31,14 +31,7 @@ class BProductImageCard extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // Product Image Placeholder
-            Center(
-              child: Icon(
-                Icons.image,
-                size: 40,
-                color: BColors.grey.withValues(alpha: 0.5),
-              ),
-            ),
+            Center(child: _buildImage()),
             // Discount Badge
             if (discount != null)
               Positioned(
@@ -67,5 +60,30 @@ class BProductImageCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildImage() {
+    if (imageUrl == null || imageUrl!.isEmpty) {
+      return Icon(
+        Icons.image,
+        size: 40,
+        color: BColors.grey.withValues(alpha: 0.5),
+      );
+    }
+
+    if (imageUrl!.startsWith('http')) {
+      return Image.network(
+        imageUrl!,
+        fit: BoxFit.contain,
+        errorBuilder:
+            (_, __, ___) => Icon(
+              Icons.broken_image,
+              size: 40,
+              color: BColors.grey.withValues(alpha: 0.5),
+            ),
+      );
+    }
+
+    return Image.asset(imageUrl!, fit: BoxFit.contain);
   }
 }

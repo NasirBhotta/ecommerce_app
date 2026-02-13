@@ -7,6 +7,8 @@ import 'package:ecommerce_app/common/widgets/store/category_tab.dart';
 import 'package:ecommerce_app/features/shop/controllers/cart_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/store_controller.dart';
 import 'package:ecommerce_app/features/shop/screens/cart.dart';
+import 'package:ecommerce_app/features/shop/models/brand_model.dart';
+import 'package:ecommerce_app/features/shop/models/product_model.dart';
 import 'package:ecommerce_app/util/constants/sized.dart';
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
 import 'package:flutter/material.dart';
@@ -127,17 +129,20 @@ class StoreScreen extends StatelessWidget {
                                 mainAxisExtent: 80,
                               ),
                           itemBuilder: (_, index) {
-                            final brand = controller.featuredBrands[index];
+                            final BrandModel brand = controller.featuredBrands[index];
                             return BBrandCard(
-                              brandName: brand['name'] as String,
-                              productCount: brand['productCount'] as int,
-                              verified: brand['verified'] as bool,
+                              brandName: brand.name,
+                              productCount: controller.productCountForBrand(
+                                brand.id,
+                              ),
+                              verified: brand.verified,
                               onTap: () {
                                 // Navigate to brand detail screen
                                 Get.to(
                                   () => BrandDetailScreen(
-                                    brandName: brand['name'] as String,
-                                    category: brand['category'] as String,
+                                    brandId: brand.id,
+                                    brandName: brand.name,
+                                    category: brand.category,
                                   ),
                                   transition: Transition.rightToLeft,
                                 );
@@ -187,31 +192,21 @@ class StoreScreen extends StatelessWidget {
                 children: [
                   // Brand Showcases with Products for selected category
                   ...List.generate(controller.filteredBrands.length, (index) {
-                    final brand = controller.filteredBrands[index];
-                    final products =
-                        brand['products'] as List<Map<String, dynamic>>;
+                    final BrandModel brand = controller.filteredBrands[index];
+                    final products = controller.productsForBrand(brand.id);
 
                     return BBrandShowcase(
-                      brandName: brand['name'] as String,
-                      productCount: brand['productCount'] as int,
-                      verified: brand['verified'] as bool,
-                      products:
-                          products
-                              .map(
-                                (p) => {
-                                  'name': p['name'] as String,
-                                  'price': p['price'] as String,
-                                  'discount': (p['discount'] as String?) ?? '',
-                                  'image': p['image'] as String,
-                                },
-                              )
-                              .toList(),
+                      brandName: brand.name,
+                      productCount: controller.productCountForBrand(brand.id),
+                      verified: brand.verified,
+                      products: products,
                       onBrandTap: () {
                         // Navigate to brand detail screen
                         Get.to(
                           () => BrandDetailScreen(
-                            brandName: brand['name'] as String,
-                            category: brand['category'] as String,
+                            brandId: brand.id,
+                            brandName: brand.name,
+                            category: brand.category,
                           ),
                           transition: Transition.rightToLeft,
                         );
@@ -248,16 +243,20 @@ class StoreScreen extends StatelessWidget {
                           mainAxisExtent: 288,
                         ),
                     itemBuilder: (_, index) {
-                      final product = controller.suggestedProducts[index];
+                      final ProductModel product =
+                          controller.suggestedProducts[index];
                       return BProductCardVertical(
-                        productId: product['id']!,
-                        productName: product['name']!,
-                        price: product['price']!,
-                        discount: product['discount'],
+                        productId: product.id,
+                        productName: product.name,
+                        price: product.priceLabel,
+                        discount: product.discountLabel,
+                        imageUrl: product.imageUrl,
+                        brandName: product.brandName,
+                        category: product.category,
                         onTap: () {
                           Get.snackbar(
                             'Product',
-                            'You tapped on ${product['name']}',
+                            'You tapped on ${product.name}',
                             snackPosition: SnackPosition.BOTTOM,
                             backgroundColor: BColors.primary.withValues(
                               alpha: 0.8,
@@ -283,11 +282,13 @@ class StoreScreen extends StatelessWidget {
 
 // Brand Detail Screen - New Screen for showing brand products
 class BrandDetailScreen extends StatefulWidget {
+  final String brandId;
   final String brandName;
   final String category;
 
   const BrandDetailScreen({
     super.key,
+    required this.brandId,
     required this.brandName,
     required this.category,
   });
@@ -307,18 +308,10 @@ class _BrandDetailScreenState extends State<BrandDetailScreen> {
     super.dispose();
   }
 
-  List<Map<String, dynamic>> get filteredProducts {
+  List<ProductModel> get filteredProducts {
     final controller = Get.find<StoreController>();
 
-    // Find the brand
-    final brand = controller.allBrands.firstWhere(
-      (b) => b['name'] == widget.brandName && b['category'] == widget.category,
-      orElse: () => {},
-    );
-
-    if (brand.isEmpty) return [];
-
-    final products = brand['products'] as List<Map<String, dynamic>>;
+    final products = controller.productsForBrand(widget.brandId);
 
     // Filter by search query if searching
     if (searchQuery.value.isEmpty) {
@@ -327,7 +320,7 @@ class _BrandDetailScreenState extends State<BrandDetailScreen> {
 
     return products
         .where(
-          (product) => product['name']!.toString().toLowerCase().contains(
+          (product) => product.name.toLowerCase().contains(
             searchQuery.value.toLowerCase(),
           ),
         )
@@ -351,10 +344,8 @@ class _BrandDetailScreenState extends State<BrandDetailScreen> {
     final controller = Get.find<StoreController>();
     final cartController = Get.find<CartController>();
 
-    // Find brand data
-    final brand = controller.allBrands.firstWhere(
-      (b) => b['name'] == widget.brandName && b['category'] == widget.category,
-      orElse: () => {},
+    final brand = controller.allBrands.firstWhereOrNull(
+      (b) => b.id == widget.brandId,
     );
 
     return Scaffold(
@@ -428,11 +419,11 @@ class _BrandDetailScreenState extends State<BrandDetailScreen> {
               const SizedBox(height: BSizes.spaceBetweenSections),
 
               // Brand Info
-              if (brand.isNotEmpty)
+              if (brand != null)
                 BBrandCard(
-                  brandName: brand['name'] as String,
-                  productCount: brand['productCount'] as int,
-                  verified: brand['verified'] as bool,
+                  brandName: brand.name,
+                  productCount: controller.productCountForBrand(brand.id),
+                  verified: brand.verified,
                   onTap: () {},
                 ),
 
@@ -479,14 +470,17 @@ class _BrandDetailScreenState extends State<BrandDetailScreen> {
                   itemBuilder: (_, index) {
                     final product = products[index];
                     return BProductCardVertical(
-                      productId: product['id']!,
-                      productName: product['name']!,
-                      price: product['price']!,
-                      discount: product['discount'],
+                      productId: product.id,
+                      productName: product.name,
+                      price: product.priceLabel,
+                      discount: product.discountLabel,
+                      imageUrl: product.imageUrl,
+                      brandName: product.brandName,
+                      category: product.category,
                       onTap: () {
                         Get.snackbar(
                           'Product',
-                          'You tapped on ${product['name']}',
+                          'You tapped on ${product.name}',
                           snackPosition: SnackPosition.BOTTOM,
                           backgroundColor: BColors.primary.withValues(
                             alpha: 0.8,

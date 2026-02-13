@@ -23,6 +23,7 @@ import 'package:ecommerce_app/features/shop/controllers/store_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/whishlist_controller.dart';
 import 'package:ecommerce_app/firebase_options.dart';
 import 'package:ecommerce_app/features/shop/models/product_model.dart';
+import 'package:ecommerce_app/util/helpers/seed_firestore.dart';
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
 import 'package:ecommerce_app/util/theme/theme.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
@@ -42,13 +43,17 @@ void main() async {
 
   await GetStorage.init();
   await Hive.initFlutter();
-  Hive.registerAdapter(ProductModelAdapter());
+  if (!Hive.isAdapterRegistered(10)) {
+    Hive.registerAdapter(ProductModelAdapter());
+  }
   await Hive.openBox<ProductModel>('products_box');
   await Hive.openBox('products_meta');
 
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // await SeedFirestore.seedFirestore();
 
   Get.put(AuthenticationRepository());
   Get.put(UserRepository());

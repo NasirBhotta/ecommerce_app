@@ -14,6 +14,8 @@ class BProductCardVertical extends StatelessWidget {
     required this.price,
     this.discount,
     this.imageUrl,
+    this.brandName,
+    this.category,
     this.onTap,
     this.onFavoriteTap,
   });
@@ -23,6 +25,8 @@ class BProductCardVertical extends StatelessWidget {
   final String price;
   final String? discount;
   final String? imageUrl;
+  final String? brandName;
+  final String? category;
   final VoidCallback? onTap;
   final VoidCallback? onFavoriteTap;
 
@@ -64,13 +68,7 @@ class BProductCardVertical extends StatelessWidget {
               child: Stack(
                 children: [
                   // Product Image
-                  Center(
-                    child: Icon(
-                      Icons.image,
-                      size: 80,
-                      color: BColors.grey.withValues(alpha: 0.5),
-                    ),
-                  ),
+                  Center(child: _buildImage()),
                   // Discount Badge
                   if (discount != null)
                     Positioned(
@@ -126,6 +124,8 @@ class BProductCardVertical extends StatelessWidget {
                                 'price': price,
                                 'discount': discount,
                                 'image': imageUrl,
+                                'category': category,
+                                'brand': brandName,
                               }),
                         ),
                       ),
@@ -152,7 +152,7 @@ class BProductCardVertical extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        'Nike',
+                        brandName?.isNotEmpty == true ? brandName! : 'Brand',
                         style: Theme.of(
                           context,
                         ).textTheme.bodySmall!.apply(color: BColors.grey),
@@ -251,7 +251,10 @@ class BProductCardVertical extends StatelessWidget {
                                         'name': productName,
                                         'price': price,
                                         'image': imageUrl,
-                                        'brand': 'Nike', // Hardcoded for demo
+                                        'brand':
+                                            brandName?.isNotEmpty == true
+                                                ? brandName
+                                                : 'Brand',
                                         'size': 'M', // Default
                                         'color': 'Default',
                                         'quantity': 1,
@@ -278,5 +281,30 @@ class BProductCardVertical extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildImage() {
+    if (imageUrl == null || imageUrl!.isEmpty) {
+      return Icon(
+        Icons.image,
+        size: 80,
+        color: BColors.grey.withValues(alpha: 0.5),
+      );
+    }
+
+    if (imageUrl!.startsWith('http')) {
+      return Image.network(
+        imageUrl!,
+        fit: BoxFit.contain,
+        errorBuilder:
+            (_, __, ___) => Icon(
+              Icons.broken_image,
+              size: 80,
+              color: BColors.grey.withValues(alpha: 0.5),
+            ),
+      );
+    }
+
+    return Image.asset(imageUrl!, fit: BoxFit.contain);
   }
 }
