@@ -1,4 +1,5 @@
 import 'package:ecommerce_app/data/repositories/auth_repo.dart';
+import 'package:ecommerce_app/data/repositories/product_repository.dart';
 import 'package:ecommerce_app/data/services/notification_service.dart';
 import 'package:ecommerce_app/data/repositories/order_repo.dart';
 import 'package:ecommerce_app/data/repositories/user_repo.dart';
@@ -21,6 +22,7 @@ import 'package:ecommerce_app/features/shop/controllers/profile_edit_controller.
 import 'package:ecommerce_app/features/shop/controllers/store_controller.dart';
 import 'package:ecommerce_app/features/shop/controllers/whishlist_controller.dart';
 import 'package:ecommerce_app/firebase_options.dart';
+import 'package:ecommerce_app/features/shop/models/product_model.dart';
 import 'package:ecommerce_app/util/theme/custom_theme/text_theme.dart';
 import 'package:ecommerce_app/util/theme/theme.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
@@ -30,6 +32,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +41,10 @@ void main() async {
       'pk_test_51SuIzBR2isNwrykZXBnXKwPdhLAi3MYTCfFV6vmEhkytyzY91ZvzXBmGXVwl9N3d9taQPhnEHU11jiit2AqAeTqf00Nj98cNLG';
 
   await GetStorage.init();
+  await Hive.initFlutter();
+  Hive.registerAdapter(ProductModelAdapter());
+  await Hive.openBox<ProductModel>('products_box');
+  await Hive.openBox('products_meta');
 
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
@@ -45,6 +52,7 @@ void main() async {
 
   Get.put(AuthenticationRepository());
   Get.put(UserRepository());
+  Get.put(ProductRepository());
   await Get.putAsync<NotificationService>(() => NotificationService().init());
 
   // await FirebaseAppCheck.instance.activate(

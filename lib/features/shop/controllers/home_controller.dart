@@ -1,6 +1,8 @@
 import 'package:ecommerce_app/features/shop/screens/product_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:ecommerce_app/data/repositories/product_repository.dart';
+import 'package:ecommerce_app/features/shop/models/product_model.dart';
 
 class HomeController extends GetxController {
   static HomeController get instance => Get.find();
@@ -13,107 +15,24 @@ class HomeController extends GetxController {
   final searchQuery = ''.obs;
   final isSearching = false.obs;
 
-  // All products list
-  final allProducts =
-      <Map<String, String>>[
-        {
-          'id': '1',
-          'name': 'Nike Air Jordan Shoes',
-          'price': '\$299.99',
-          'discount': '70%',
-          'category': 'Sports',
-        },
-        {
-          'id': '2',
-          'name': 'Blue Cotton T-Shirt',
-          'price': '\$49.99',
-          'discount': '40%',
-          'category': 'Clothes',
-        },
-        {
-          'id': '3',
-          'name': 'Adidas Running Sneakers',
-          'price': '\$189.99',
-          'discount': '50%',
-          'category': 'Sports',
-        },
-        {
-          'id': '4',
-          'name': 'Leather Office Shoes',
-          'price': '\$159.99',
-          'discount': '30%',
-          'category': 'Shoes',
-        },
-        {
-          'id': '5',
-          'name': 'Gaming Laptop Pro',
-          'price': '\$1299.99',
-          'discount': '15%',
-          'category': 'Electronics',
-        },
-        {
-          'id': '6',
-          'name': 'Wireless Headphones',
-          'price': '\$89.99',
-          'discount': '25%',
-          'category': 'Electronics',
-        },
-        {
-          'id': '7',
-          'name': 'Denim Jacket',
-          'price': '\$79.99',
-          'discount': '35%',
-          'category': 'Clothes',
-        },
-        {
-          'id': '8',
-          'name': 'Smart Watch Series 5',
-          'price': '\$399.99',
-          'discount': '20%',
-          'category': 'Electronics',
-        },
-        {
-          'id': '9',
-          'name': 'Casual Sneakers',
-          'price': '\$69.99',
-          'discount': '45%',
-          'category': 'Shoes',
-        },
-        {
-          'id': '10',
-          'name': 'Cotton Polo Shirt',
-          'price': '\$39.99',
-          'discount': '30%',
-          'category': 'Clothes',
-        },
-        {
-          'id': '11',
-          'name': 'Basketball Shoes',
-          'price': '\$149.99',
-          'discount': '40%',
-          'category': 'Sports',
-        },
-        {
-          'id': '12',
-          'name': 'Modern Office Chair',
-          'price': '\$249.99',
-          'discount': '25%',
-          'category': 'Furniture',
-        },
-      ].obs;
+  final ProductRepository _productRepo = ProductRepository.instance;
+
+  final RxList<ProductModel> allProducts = <ProductModel>[].obs;
+  final isLoading = false.obs;
+  final errorMessage = ''.obs;
 
   // Filtered products based on search
-  RxList<Map<String, String>> get filteredProducts {
+  RxList<ProductModel> get filteredProducts {
     if (searchQuery.value.isEmpty) {
       return allProducts;
     }
     return allProducts
         .where(
           (product) =>
-              product['name']!.toLowerCase().contains(
+              product.name.toLowerCase().contains(
                 searchQuery.value.toLowerCase(),
               ) ||
-              product['category']!.toLowerCase().contains(
+              product.category.toLowerCase().contains(
                 searchQuery.value.toLowerCase(),
               ),
         )
@@ -139,13 +58,9 @@ class HomeController extends GetxController {
     isSearching.value = false;
   }
 
-  void navigateToDetailedScreen(Map<String, String> product) {
+  void navigateToDetailedScreen(ProductModel product) {
     Get.to(
-      () => ProductDetailScreen(
-        productName: product['name']!,
-        price: product['price']!,
-        discount: product['discount'],
-      ),
+      () => ProductDetailScreen(product: product),
       transition: Transition.rightToLeft,
     );
   }
@@ -159,6 +74,26 @@ class HomeController extends GetxController {
     {'icon': 'pets', 'title': 'Animals'},
     {'icon': 'shopping_bag', 'title': 'Shoes'},
   ];
+
+  @override
+  void onInit() {
+    super.onInit();
+    loadProducts();
+  }
+
+  Future<void> loadProducts({bool forceRefresh = false}) async {
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
+      final products =
+          await _productRepo.fetchAllProducts(forceRefresh: forceRefresh);
+      allProducts.assignAll(products);
+    } catch (e) {
+      errorMessage.value = e.toString();
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   @override
   void onClose() {
