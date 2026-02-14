@@ -22,9 +22,10 @@ class AdminDashboardPage extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final isDesktop = constraints.maxWidth > 1100;
-            final chartWidth = isDesktop
-                ? (constraints.maxWidth - 56) / 3
-                : constraints.maxWidth;
+            final chartWidth =
+                isDesktop
+                    ? (constraints.maxWidth - 56) / 3
+                    : constraints.maxWidth;
 
             return ListView(
               padding: const EdgeInsets.all(20),
@@ -65,7 +66,9 @@ class AdminDashboardPage extends StatelessWidget {
                     ),
                     _MetricCard(
                       title: 'Avg Order Value',
-                      value: _formatCurrency(controller.averageOrderValue.value),
+                      value: _formatCurrency(
+                        controller.averageOrderValue.value,
+                      ),
                       hint: 'Revenue divided by orders',
                       icon: Icons.payments_outlined,
                       accent: const Color(0xFF059669),
@@ -184,20 +187,11 @@ class _DashboardHero extends StatelessWidget {
           if (isCompact) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                content,
-                const SizedBox(height: 12),
-                button,
-              ],
+              children: [content, const SizedBox(height: 12), button],
             );
           }
 
-          return Row(
-            children: [
-              Expanded(child: content),
-              button,
-            ],
-          );
+          return Row(children: [Expanded(child: content), button]);
         },
       ),
     );
@@ -226,9 +220,9 @@ class _ErrorBanner extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: const Color(0xFFB91C1C),
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: const Color(0xFFB91C1C)),
             ),
           ),
         ],
@@ -281,16 +275,15 @@ class _MetricCard extends StatelessWidget {
               Text(
                 value,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 hint,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: Colors.black54),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.black54),
               ),
             ],
           ),
@@ -321,10 +314,9 @@ class _ChartCard extends StatelessWidget {
           children: [
             Text(
               title,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
             SizedBox(height: 220, child: child),
@@ -362,17 +354,21 @@ class _RevenueLineChart extends StatelessWidget {
         ),
         borderData: FlBorderData(show: false),
         titlesData: FlTitlesData(
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 56,
-              getTitlesWidget: (value, _) => Text(
-                NumberFormat.compactCurrency(symbol: '\$').format(value),
-                style: const TextStyle(fontSize: 10),
-              ),
+              getTitlesWidget:
+                  (value, _) => Text(
+                    NumberFormat.compactCurrency(symbol: '\$').format(value),
+                    style: const TextStyle(fontSize: 10),
+                  ),
             ),
           ),
           bottomTitles: AxisTitles(
@@ -435,9 +431,12 @@ class _StatusBarChart extends StatelessWidget {
         gridData: const FlGridData(show: true, drawVerticalLine: false),
         borderData: FlBorderData(show: false),
         titlesData: FlTitlesData(
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
@@ -591,25 +590,25 @@ class _RecentOrdersCard extends StatelessWidget {
           children: [
             Text(
               'Recent Orders',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             if (orders.isEmpty)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
-                child: Center(child: Text('No order data found for dashboard.')),
+                child: Center(
+                  child: Text('No order data found for dashboard.'),
+                ),
               )
             else
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: DataTable(
-                  headingTextStyle: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.w600),
+                  headingTextStyle: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                   columns: const [
                     DataColumn(label: Text('Order ID')),
                     DataColumn(label: Text('User')),
@@ -617,33 +616,37 @@ class _RecentOrdersCard extends StatelessWidget {
                     DataColumn(label: Text('Status')),
                     DataColumn(label: Text('Amount')),
                   ],
-                  rows: orders
-                      .map<DataRow>(
-                        (o) => DataRow(
-                          cells: [
-                            DataCell(Text(o.id.toString())),
-                            DataCell(Text(o.userId.toString())),
-                            DataCell(
-                              Text(
-                                o.orderDate.millisecondsSinceEpoch > 0
-                                    ? DateFormat('dd MMM yyyy')
-                                        .format(o.orderDate)
-                                    : '-',
-                              ),
+                  rows:
+                      orders
+                          .map<DataRow>(
+                            (o) => DataRow(
+                              cells: [
+                                DataCell(Text(o.id.toString())),
+                                DataCell(Text(o.userId.toString())),
+                                DataCell(
+                                  Text(
+                                    o.orderDate.millisecondsSinceEpoch > 0
+                                        ? DateFormat(
+                                          'dd MMM yyyy',
+                                        ).format(o.orderDate)
+                                        : '-',
+                                  ),
+                                ),
+                                DataCell(
+                                  _StatusChip(status: o.status.toString()),
+                                ),
+                                DataCell(
+                                  Text(
+                                    NumberFormat.currency(
+                                      symbol: '\$',
+                                      decimalDigits: 2,
+                                    ).format(o.totalAmount),
+                                  ),
+                                ),
+                              ],
                             ),
-                            DataCell(_StatusChip(status: o.status.toString())),
-                            DataCell(
-                              Text(
-                                NumberFormat.currency(
-                                  symbol: '\$',
-                                  decimalDigits: 2,
-                                ).format(o.totalAmount),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                      .toList(),
+                          )
+                          .toList(),
                 ),
               ),
           ],
@@ -689,9 +692,9 @@ class _StatusChip extends StatelessWidget {
       child: Text(
         status,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w600,
-            ),
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
