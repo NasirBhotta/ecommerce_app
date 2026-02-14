@@ -20,16 +20,60 @@ class AdminDashboardController extends GetxController {
   }
 
   Future<void> loadDashboard() async {
-    try {
-      isLoading.value = true;
-      errorMessage.value = '';
+    isLoading.value = true;
+    errorMessage.value = '';
+    recentOrders.clear();
 
+    try {
       final usersAgg = await _db.collection('users').count().get();
       totalUsers.value = usersAgg.count ?? 0;
+    } catch (e) {
+      totalUsers.value = 0;
+      errorMessage.value = 'Users metric failed: $e';
+    }
 
-      final ordersSnapshot = await _db.collectionGroup('orders').get();
+    try {
+      var ordersSnapshot = await _db.collectionGroup('orders').get();
+
+      if (ordersSnapshot.docs.isEmpty) {
+        final topLevelOrders = await _db.collection('orders').get();
+        if (topLevelOrders.docs.isNotEmpty) {
+          totalOrders.value = topLevelOrders.docs.length;
+
+          var revenue = 0.0;
+          var pending = 0;
+          final rows = <AdminOrderItem>[];
+          for (final doc in topLevelOrders.docs) {
+            final data = doc.data();
+            revenue += ((data['totalAmount'] ?? 0) as num).toDouble();
+            final status = (data['status'] ?? '').toString();
+            if (status == 'Processing' || status == 'Shipped') {
+              pending++;
+            }
+            rows.add(
+              AdminOrderItem(
+                id: doc.id,
+                userId: (data['userId'] ?? '').toString(),
+                status: status,
+                totalAmount: ((data['totalAmount'] ?? 0) as num).toDouble(),
+                paymentMethod: (data['paymentMethod'] ?? '').toString(),
+                orderDate:
+                    data['orderDate'] is Timestamp
+                        ? (data['orderDate'] as Timestamp).toDate()
+                        : DateTime.fromMillisecondsSinceEpoch(0),
+                reference: doc.reference,
+              ),
+            );
+          }
+          rows.sort((a, b) => b.orderDate.compareTo(a.orderDate));
+          totalRevenue.value = revenue;
+          pendingOrders.value = pending;
+          recentOrders.assignAll(rows.take(8).toList());
+          return;
+        }
+      }
+
       totalOrders.value = ordersSnapshot.docs.length;
-
       var revenue = 0.0;
       var pending = 0;
       for (final doc in ordersSnapshot.docs) {
@@ -48,15 +92,17 @@ class AdminDashboardController extends GetxController {
               .map((doc) => AdminOrderItem.fromDocument(doc))
               .toList()
             ..sort((a, b) => b.orderDate.compareTo(a.orderDate));
-
       recentOrders.assignAll(recent.take(8).toList());
     } catch (e) {
-      errorMessage.value = e.toString();
-      totalUsers.value = 0;
       totalOrders.value = 0;
       pendingOrders.value = 0;
       totalRevenue.value = 0;
       recentOrders.clear();
+      if (errorMessage.value.isEmpty) {
+        errorMessage.value = 'Orders metric failed: $e';
+      } else {
+        errorMessage.value = '${errorMessage.value}\nOrders metric failed: $e';
+      }
     } finally {
       isLoading.value = false;
     }

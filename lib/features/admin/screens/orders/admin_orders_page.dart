@@ -18,6 +18,14 @@ class AdminOrdersPage extends StatelessWidget {
       return ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (controller.errorMessage.value.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                controller.errorMessage.value,
+                style: const TextStyle(color: Colors.red),
+              ),
+            ),
           Row(
             children: [
               DropdownButton<String>(
@@ -37,25 +45,33 @@ class AdminOrdersPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Card(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('Order ID')),
-                  DataColumn(label: Text('User ID')),
-                  DataColumn(label: Text('Status')),
-                  DataColumn(label: Text('Payment')),
-                  DataColumn(label: Text('Amount')),
-                  DataColumn(label: Text('Action')),
-                ],
-                rows:
-                    controller.orders
-                        .map((o) => _row(context, controller, o))
-                        .toList(),
+          if (controller.orders.isEmpty)
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('No orders found.'),
+              ),
+            )
+          else
+            Card(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  columns: const [
+                    DataColumn(label: Text('Order ID')),
+                    DataColumn(label: Text('User ID')),
+                    DataColumn(label: Text('Status')),
+                    DataColumn(label: Text('Payment')),
+                    DataColumn(label: Text('Amount')),
+                    DataColumn(label: Text('Action')),
+                  ],
+                  rows:
+                      controller.orders
+                          .map((o) => _row(context, controller, o))
+                          .toList(),
+                ),
               ),
             ),
-          ),
         ],
       );
     });

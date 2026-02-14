@@ -30,7 +30,13 @@ class AdminOrdersController extends GetxController {
     try {
       isLoading.value = true;
       errorMessage.value = '';
-      final snapshot = await _db.collectionGroup('orders').get();
+      var snapshot = await _db.collectionGroup('orders').get();
+      if (snapshot.docs.isEmpty) {
+        final topLevelOrders = await _db.collection('orders').get();
+        if (topLevelOrders.docs.isNotEmpty) {
+          snapshot = topLevelOrders;
+        }
+      }
 
       final loaded =
           snapshot.docs.map((doc) => AdminOrderItem.fromDocument(doc)).toList()

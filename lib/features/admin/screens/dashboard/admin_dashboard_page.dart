@@ -19,6 +19,14 @@ class AdminDashboardPage extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            if (controller.errorMessage.value.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  controller.errorMessage.value,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
             Wrap(
               spacing: 12,
               runSpacing: 12,
@@ -48,31 +56,39 @@ class AdminDashboardPage extends StatelessWidget {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
-            Card(
-              child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('Order ID')),
-                  DataColumn(label: Text('User')),
-                  DataColumn(label: Text('Status')),
-                  DataColumn(label: Text('Amount')),
-                ],
-                rows:
-                    controller.recentOrders
-                        .map(
-                          (o) => DataRow(
-                            cells: [
-                              DataCell(Text(o.id)),
-                              DataCell(Text(o.userId)),
-                              DataCell(Text(o.status)),
-                              DataCell(
-                                Text('\$${o.totalAmount.toStringAsFixed(2)}'),
-                              ),
-                            ],
-                          ),
-                        )
-                        .toList(),
+            if (controller.recentOrders.isEmpty)
+              const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text('No order data found for dashboard.'),
+                ),
+              )
+            else
+              Card(
+                child: DataTable(
+                  columns: const [
+                    DataColumn(label: Text('Order ID')),
+                    DataColumn(label: Text('User')),
+                    DataColumn(label: Text('Status')),
+                    DataColumn(label: Text('Amount')),
+                  ],
+                  rows:
+                      controller.recentOrders
+                          .map(
+                            (o) => DataRow(
+                              cells: [
+                                DataCell(Text(o.id)),
+                                DataCell(Text(o.userId)),
+                                DataCell(Text(o.status)),
+                                DataCell(
+                                  Text('\$${o.totalAmount.toStringAsFixed(2)}'),
+                                ),
+                              ],
+                            ),
+                          )
+                          .toList(),
+                ),
               ),
-            ),
           ],
         ),
       );
