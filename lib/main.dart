@@ -46,6 +46,7 @@ void main() async {
   if (!Hive.isAdapterRegistered(10)) {
     Hive.registerAdapter(ProductModelAdapter());
   }
+
   await Hive.openBox<ProductModel>('products_box');
   await Hive.openBox('products_meta');
 
