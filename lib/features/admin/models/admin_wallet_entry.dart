@@ -21,7 +21,8 @@ class AdminWalletEntry {
   final DateTime timestamp;
   final DocumentReference<Map<String, dynamic>> reference;
 
-  bool get isWithdrawal => type == 'debit' && description.toLowerCase().contains('withdrawal');
+  bool get isWithdrawal =>
+      type == 'debit' && description.toLowerCase().contains('withdrawal');
 
   factory AdminWalletEntry.fromDocument(
     QueryDocumentSnapshot<Map<String, dynamic>> doc,
@@ -37,7 +38,10 @@ class AdminWalletEntry {
       status: (data['status'] ?? '').toString(),
       amount: ((data['amount'] ?? 0) as num).toDouble(),
       description: (data['description'] ?? '').toString(),
-      timestamp: ts is Timestamp ? ts.toDate() : DateTime.fromMillisecondsSinceEpoch(0),
+      timestamp:
+          ts is Timestamp
+              ? ts.toDate()
+              : DateTime.fromMillisecondsSinceEpoch(0),
       reference: doc.reference,
     );
   }

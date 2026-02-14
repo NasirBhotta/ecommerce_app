@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ecommerce_app/features/admin/services/admin_audit_logger.dart';
 import 'package:get/get.dart';
 
 class AdminUsersController extends GetxController {
@@ -37,6 +38,12 @@ class AdminUsersController extends GetxController {
       'role': role,
       'updatedAt': FieldValue.serverTimestamp(),
     });
+    await AdminAuditLogger.log(
+      action: 'user_role_updated',
+      resourceType: 'user',
+      resourceId: uid,
+      details: {'role': role},
+    );
     await loadUsers();
   }
 
@@ -45,6 +52,12 @@ class AdminUsersController extends GetxController {
       'isActive': isActive,
       'updatedAt': FieldValue.serverTimestamp(),
     });
+    await AdminAuditLogger.log(
+      action: 'user_status_updated',
+      resourceType: 'user',
+      resourceId: uid,
+      details: {'isActive': isActive},
+    );
     await loadUsers();
   }
 }

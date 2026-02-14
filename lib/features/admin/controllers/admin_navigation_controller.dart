@@ -9,6 +9,17 @@ class AdminNavigationController extends GetxController {
     'Products',
     'Users',
     'Notifications',
+    'Wallet Ledger',
+    'Withdrawals',
+    'Payment Issues',
+    'Risk Flags',
+    'Coupons',
+    'Brands',
+    'Merchandising',
+    'Analytics',
+    'Exports',
+    'Audit Logs',
+    'Alerts',
   ];
 
   void select(int index) {

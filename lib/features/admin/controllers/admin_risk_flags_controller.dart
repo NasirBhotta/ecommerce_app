@@ -2,25 +2,25 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecommerce_app/features/admin/services/admin_audit_logger.dart';
 import 'package:get/get.dart';
 
-class AdminPaymentIssuesController extends GetxController {
+class AdminRiskFlagsController extends GetxController {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
-  final RxList<QueryDocumentSnapshot<Map<String, dynamic>>> issues =
+  final RxList<QueryDocumentSnapshot<Map<String, dynamic>>> flags =
       <QueryDocumentSnapshot<Map<String, dynamic>>>[].obs;
 
   @override
   void onInit() {
     super.onInit();
-    loadIssues();
+    loadFlags();
   }
 
-  Future<void> loadIssues() async {
+  Future<void> loadFlags() async {
     try {
       isLoading.value = true;
       errorMessage.value = '';
-      final snapshot = await _db.collection('payment_issues').get();
+      final snapshot = await _db.collection('risk_flags').get();
       final docs =
           snapshot.docs.toList()..sort((a, b) {
             final aTs = a.data()['createdAt'];
@@ -35,27 +35,48 @@ class AdminPaymentIssuesController extends GetxController {
                     : DateTime.fromMillisecondsSinceEpoch(0);
             return bDate.compareTo(aDate);
           });
-      issues.assignAll(docs);
+      flags.assignAll(docs);
     } catch (e) {
-      issues.clear();
+      flags.clear();
       errorMessage.value = e.toString();
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> resolveIssue(String issueId, String note) async {
-    await _db.collection('payment_issues').doc(issueId).update({
+  Future<void> createFlag({
+    required String userId,
+    required String reason,
+    required String severity,
+  }) async {
+    final ref = await _db.collection('risk_flags').add({
+      'userId': userId,
+      'reason': reason,
+      'severity': severity,
+      'status': 'open',
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+    await AdminAuditLogger.log(
+      action: 'risk_flag_created',
+      resourceType: 'risk_flag',
+      resourceId: ref.id,
+      details: {'userId': userId, 'severity': severity},
+    );
+    await loadFlags();
+  }
+
+  Future<void> resolveFlag(String id, String note) async {
+    await _db.collection('risk_flags').doc(id).update({
       'status': 'resolved',
       'resolutionNote': note,
       'resolvedAt': FieldValue.serverTimestamp(),
     });
     await AdminAuditLogger.log(
-      action: 'payment_issue_resolved',
-      resourceType: 'payment_issue',
-      resourceId: issueId,
+      action: 'risk_flag_resolved',
+      resourceType: 'risk_flag',
+      resourceId: id,
       details: {'note': note},
     );
-    await loadIssues();
+    await loadFlags();
   }
 }

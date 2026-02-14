@@ -29,6 +29,25 @@ function requireAuth(request) {
     return request.auth.uid;
 }
 
+async function requireAdmin(request) {
+    const uid = requireAuth(request);
+
+    if (request.auth?.token?.admin === true) {
+        return uid;
+    }
+
+    const userDoc = await db.collection('users').doc(uid).get();
+    const role = userDoc.exists ? (userDoc.data().role || '').toLowerCase() : '';
+    if (role !== 'admin' && role !== 'super_admin') {
+        throw new HttpsError(
+            'permission-denied',
+            'Admin privileges are required.'
+        );
+    }
+
+    return uid;
+}
+
 function validateAmount(amount) {
     if (typeof amount !== 'number' || amount <= 0 || isNaN(amount)) {
         throw new HttpsError(
@@ -399,21 +418,62 @@ exports.requestWithdrawal = onCall({ consumeAppCheckToken: false }, async (reque
                 transactionId: ledgerRef.id,
                 balance: balance - data.amount
             };
-        }).then(async (result) => {
-            await db
-                .collection('users')
-                .doc(userId)
-                .collection('wallet_ledger')
-                .doc(result.transactionId)
-                .update({
-                    status: 'completed',
-                    processedAt: admin.firestore.FieldValue.serverTimestamp()
-                });
-
-            return result;
         });
     } catch (error) {
         console.error('Error processing withdrawal:', error);
+        if (error instanceof HttpsError) {
+            throw error;
+        }
+        throw new HttpsError('internal', error.message);
+    }
+});
+
+// ==========================================
+// ADMIN PROCESS WITHDRAWAL
+// ==========================================
+exports.adminProcessWithdrawal = onCall({ consumeAppCheckToken: false }, async (request) => {
+    const adminUid = await requireAdmin(request);
+    const data = request.data;
+
+    try {
+        validateRequired(data, ['ledgerPath', 'action']);
+
+        if (data.action !== 'approve' && data.action !== 'reject') {
+            throw new HttpsError('invalid-argument', 'Action must be approve or reject');
+        }
+
+        const ledgerRef = db.doc(data.ledgerPath);
+        const ledgerDoc = await ledgerRef.get();
+
+        if (!ledgerDoc.exists) {
+            throw new HttpsError('not-found', 'Withdrawal transaction not found');
+        }
+
+        const ledgerData = ledgerDoc.data();
+        if (ledgerData.type !== 'debit') {
+            throw new HttpsError('failed-precondition', 'Only debit entries can be processed');
+        }
+
+        if (ledgerData.status !== 'pending') {
+            throw new HttpsError('failed-precondition', 'Only pending withdrawals can be processed');
+        }
+
+        const status = data.action === 'approve' ? 'completed' : 'failed';
+        const updatePayload = {
+            status,
+            processedAt: admin.firestore.FieldValue.serverTimestamp(),
+            processedBy: adminUid,
+        };
+
+        if (status === 'failed') {
+            updatePayload.failureReason = data.reason || 'Rejected by admin';
+        }
+
+        await ledgerRef.update(updatePayload);
+
+        return { success: true, status };
+    } catch (error) {
+        console.error('Error processing withdrawal by admin:', error);
         if (error instanceof HttpsError) {
             throw error;
         }
@@ -711,6 +771,21 @@ async function handlePaymentSuccess(paymentIntent) {
 
 async function handlePaymentFailure(paymentIntent) {
     console.error('Payment failed:', paymentIntent.id);
+    try {
+        await db.collection('payment_issues').doc(paymentIntent.id).set({
+            type: 'payment_intent_failed',
+            issueId: paymentIntent.id,
+            userId: paymentIntent.metadata?.firebaseUID || '',
+            status: 'open',
+            errorCode: paymentIntent.last_payment_error?.code || '',
+            errorMessage: paymentIntent.last_payment_error?.message || 'Payment failed',
+            amount: (paymentIntent.amount || 0) / 100,
+            currency: paymentIntent.currency || 'usd',
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        }, { merge: true });
+    } catch (error) {
+        console.error('Error logging payment issue:', error);
+    }
 }
 
 async function handlePayoutFailure(payout) {

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ecommerce_app/features/admin/services/admin_audit_logger.dart';
 import 'package:ecommerce_app/features/shop/models/product_model.dart';
 import 'package:get/get.dart';
 
@@ -38,7 +39,7 @@ class AdminProductsController extends GetxController {
     required bool isSuggested,
     required bool inStock,
   }) async {
-    await _db.collection('products').add({
+    final ref = await _db.collection('products').add({
       'name': name,
       'price': price,
       'discountPercent': discountPercent,
@@ -52,6 +53,12 @@ class AdminProductsController extends GetxController {
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
+    await AdminAuditLogger.log(
+      action: 'product_created',
+      resourceType: 'product',
+      resourceId: ref.id,
+      details: {'name': name, 'price': price},
+    );
     await loadProducts();
   }
 
@@ -80,11 +87,22 @@ class AdminProductsController extends GetxController {
       'inStock': inStock,
       'updatedAt': FieldValue.serverTimestamp(),
     });
+    await AdminAuditLogger.log(
+      action: 'product_updated',
+      resourceType: 'product',
+      resourceId: id,
+      details: {'name': name, 'price': price},
+    );
     await loadProducts();
   }
 
   Future<void> deleteProduct(String id) async {
     await _db.collection('products').doc(id).delete();
+    await AdminAuditLogger.log(
+      action: 'product_deleted',
+      resourceType: 'product',
+      resourceId: id,
+    );
     await loadProducts();
   }
 }

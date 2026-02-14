@@ -10,7 +10,9 @@ service cloud.firestore {
     }
 
     function userRole(uid) {
-      return get(/databases/$(database)/documents/users/$(uid)).data.role;
+      return exists(/databases/$(database)/documents/users/$(uid))
+        ? get(/databases/$(database)/documents/users/$(uid)).data.role
+        : '';
     }
 
     function isAdmin() {
@@ -34,6 +36,23 @@ service cloud.firestore {
     match /coupons/{couponId} {
       allow read: if signedIn();
       allow create, update, delete: if isAdmin();
+    }
+
+    match /payment_issues/{issueId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /risk_flags/{flagId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /merchandising_banners/{bannerId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /admin_audit_logs/{logId} {
+      allow read, create: if isAdmin();
+      allow update, delete: if false;
     }
 
     match /users/{userId} {

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecommerce_app/features/admin/models/admin_order_item.dart';
+import 'package:ecommerce_app/features/admin/services/admin_audit_logger.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 
@@ -8,6 +9,7 @@ class AdminOrdersController extends GetxController {
 
   final RxBool isLoading = false.obs;
   final RxString selectedFilter = 'All'.obs;
+  final RxString errorMessage = ''.obs;
   final RxList<AdminOrderItem> orders = <AdminOrderItem>[].obs;
 
   final List<String> statusFilters = const [
@@ -27,6 +29,7 @@ class AdminOrdersController extends GetxController {
   Future<void> loadOrders() async {
     try {
       isLoading.value = true;
+      errorMessage.value = '';
       final snapshot = await _db.collectionGroup('orders').get();
 
       final loaded =
@@ -40,6 +43,9 @@ class AdminOrdersController extends GetxController {
           loaded.where((o) => o.status == selectedFilter.value).toList(),
         );
       }
+    } catch (e) {
+      orders.clear();
+      errorMessage.value = e.toString();
     } finally {
       isLoading.value = false;
     }
@@ -57,6 +63,12 @@ class AdminOrdersController extends GetxController {
       'updatedBy': adminUid,
       'updatedAt': FieldValue.serverTimestamp(),
     });
+    await AdminAuditLogger.log(
+      action: 'order_status_updated',
+      resourceType: 'order',
+      resourceId: order.id,
+      details: {'status': status, 'userId': order.userId},
+    );
     await loadOrders();
   }
 }

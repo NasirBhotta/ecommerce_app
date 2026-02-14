@@ -10,6 +10,7 @@ class AdminDashboardController extends GetxController {
   final RxInt totalOrders = 0.obs;
   final RxInt pendingOrders = 0.obs;
   final RxDouble totalRevenue = 0.0.obs;
+  final RxString errorMessage = ''.obs;
   final RxList<AdminOrderItem> recentOrders = <AdminOrderItem>[].obs;
 
   @override
@@ -21,6 +22,7 @@ class AdminDashboardController extends GetxController {
   Future<void> loadDashboard() async {
     try {
       isLoading.value = true;
+      errorMessage.value = '';
 
       final usersAgg = await _db.collection('users').count().get();
       totalUsers.value = usersAgg.count ?? 0;
@@ -48,6 +50,13 @@ class AdminDashboardController extends GetxController {
             ..sort((a, b) => b.orderDate.compareTo(a.orderDate));
 
       recentOrders.assignAll(recent.take(8).toList());
+    } catch (e) {
+      errorMessage.value = e.toString();
+      totalUsers.value = 0;
+      totalOrders.value = 0;
+      pendingOrders.value = 0;
+      totalRevenue.value = 0;
+      recentOrders.clear();
     } finally {
       isLoading.value = false;
     }
